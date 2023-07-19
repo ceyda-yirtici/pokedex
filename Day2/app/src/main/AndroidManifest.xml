@@ -23,9 +23,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-
-
         </activity>
+
+        <activity android:name=".NoteDetailsActivity"
+            android:label="@string/app_name"
+            tools:ignore="WrongManifestParent" />
+
     </application>
+
 
 </manifest>

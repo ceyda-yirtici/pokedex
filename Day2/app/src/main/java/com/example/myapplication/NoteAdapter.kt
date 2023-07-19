@@ -1,14 +1,15 @@
 package com.example.myapplication
 
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.RecyclerItem
 
-class NoteAdapter(val notes: List<RecyclerItem>,  val onNoteClickListener: OnNoteClickListener) : RecyclerView.Adapter<NoteAdapter.ViewHolder>() {
+class NoteAdapter(val notes: List<RecyclerItem>,
+                  val onNoteClickListener: OnNoteClickListener) : RecyclerView.Adapter<NoteAdapter.ViewHolder>() {
 
     interface OnNoteClickListener {
         fun onNoteClick(position: Int, notes: List<RecyclerItem>)

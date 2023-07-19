@@ -1,16 +1,20 @@
+package com.example.myapplication;
+
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.widget.TextView
 import com.example.myapplication.R
 
 class NoteDetailsActivity : AppCompatActivity() {
     private lateinit var tvNoteDetails: TextView
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.item_bar)
-
-       // tvNoteDetails = findViewById(R.id)
+        setContentView(R.layout.second_activity)
+        tvNoteDetails = findViewById(R.id.second)
 
         // Get the data from the intent
         if (intent.hasExtra("note_title")) {

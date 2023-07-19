@@ -1,12 +1,12 @@
 package com.example.myapplication
 
-import NoteDetailsActivity
+
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import com.example.myapplication.NoteAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
 
 class MainActivity : AppCompatActivity(), NoteAdapter.OnNoteClickListener {
 
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity(), NoteAdapter.OnNoteClickListener {
         }
         recyclerView = findViewById(R.id.recycler)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = NoteAdapter(list, this)
+        recyclerView.adapter = NoteAdapter(list, this@MainActivity)
 
     }
     override fun onNoteClick(position: Int, notes: List<RecyclerItem>) {
