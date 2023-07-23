@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity(), NoteAdapter.OnNoteClickListener {
         val detail = clickedNote.content
 
 
-        // Navigate to a new page (e.g., NoteDetailsActivity) and pass the data
         val intent = Intent(this, NoteDetailsActivity::class.java)
         intent.putExtra("detail_note", detail)
         startActivity(intent)

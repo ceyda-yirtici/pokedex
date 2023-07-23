@@ -16,6 +16,7 @@ class NoteDetailsActivity : AppCompatActivity() {
         setContentView(R.layout.second_activity)
         tvNoteDetails = findViewById(R.id.second)
 
+        // Get the data from the intent
         if (intent.hasExtra("detail_note")) {
             val detail = intent.getStringExtra("detail_note")
             tvNoteDetails.text = detail
