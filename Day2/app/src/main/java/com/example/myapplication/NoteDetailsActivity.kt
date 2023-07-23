@@ -17,11 +17,11 @@ class NoteDetailsActivity : AppCompatActivity() {
         tvNoteDetails = findViewById(R.id.second)
 
         // Get the data from the intent
-        if (intent.hasExtra("note_title")) {
-            val title = intent.getStringExtra("note_title")
+        if (intent.hasExtra("detail_note")) {
+            val detail = intent.getStringExtra("detail_note")
             // You can use this title to fetch the note details from your data source
             // For now, let's just display the title itself as the details
-            tvNoteDetails.text = title
+            tvNoteDetails.text = detail
         }
     }
 }
