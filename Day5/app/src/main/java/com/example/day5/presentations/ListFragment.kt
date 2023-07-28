@@ -30,7 +30,7 @@ class ListFragment : Fragment(R.layout.fragment_list) {
         view.apply {
             recyclerView = findViewById(R.id.recycler)
             recyclerView.adapter = projectRecyclerAdapter
-            viewModel.display()
+            viewModel.displayGroup()
             loadingView = findViewById(R.id.loading)
         }
     }

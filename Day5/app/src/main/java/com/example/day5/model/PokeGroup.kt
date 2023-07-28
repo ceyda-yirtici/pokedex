@@ -4,6 +4,6 @@ import com.google.gson.annotations.SerializedName
 
 data class PokeGroup(
 
-    @SerializedName("results") val characters: ArrayList<Character?>,
+    @SerializedName("results") var characters: List<Character>,
 )
 

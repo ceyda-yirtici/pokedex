@@ -43,10 +43,4 @@ class NetworkModule {
         return retrofit.create(PokeService::class.java)
     }
 
-    @Provides
-    @Named("asdsa")
-    fun asdsaPokeService(retrofit: Retrofit) : PokeService {
-        return retrofit.create(PokeService::class.java)
-    }
-
 }
