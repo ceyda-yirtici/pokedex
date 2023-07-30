@@ -5,9 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.day5.model.Character
 import com.example.day5.model.CharacterDetail
-import com.example.day5.model.PokeGroup
 import com.example.day5.service.PokeService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -28,27 +26,13 @@ class ListViewModel @Inject constructor(
         callPokemonRepos()
     }
 
-    /*
-    private fun callPokemonDetails(id: Int) {
-        liveDataLoading.postValue(true)
-        viewModelScope.launch(Dispatchers.IO) {
-             try {
-                 val poke =getPokemonDetail(id)
-                 _liveDataPoke.postValue(poke)
-
-            } catch (exception: Exception) {
-                ""
-            }
-            liveDataLoading.postValue(false)
-        }
-    }*/
     private fun callPokemonRepos() {
         liveDataLoading.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
 
             val pokeList = try {
                 val pokemonList = mutableListOf<CharacterDetail>()
-                for (i in 1..50) {
+                for (i in 1..15) {
                     val pokemon = pokeService.getPokemon(i)
                     pokemonList.add(pokemon)
                 }
@@ -56,7 +40,7 @@ class ListViewModel @Inject constructor(
             } catch (exception: Exception) {
                 emptyList()
             }
-            Log.i("mvvm", pokeList.toString())
+
             _liveDataPokeGroup.postValue(pokeList)
             liveDataLoading.postValue(false)
         }

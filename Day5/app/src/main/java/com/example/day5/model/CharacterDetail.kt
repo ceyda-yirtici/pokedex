@@ -10,7 +10,7 @@ data class CharacterDetail (
     @SerializedName("id") val id: Int?,
     @SerializedName("weight") val weight: Int?,
     @SerializedName("height") val height: Int?,
-    @SerializedName("abilities") val abilities: List<CharacterAbility>,
+    @SerializedName("abilities") val abilities: List<AbilityDetails>,
     @SerializedName("sprites") val sprites: DetailCharacterSprites,
     @SerializedName("stats") val stats: List<PokemonStat>,
     @SerializedName("color") val color: String?
