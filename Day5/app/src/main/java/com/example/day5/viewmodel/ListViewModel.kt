@@ -18,21 +18,46 @@ class ListViewModel @Inject constructor(
 
     private val pokeService: PokeService
 ) : ViewModel() {
+
     private val _liveDataPokeGroup = MutableLiveData<List<CharacterDetail>>()
     val liveDataPokeGroup: LiveData<List<CharacterDetail>> = _liveDataPokeGroup
 
     val liveDataLoading = MutableLiveData<Boolean>()
+
+    private val _pokeCount = MutableLiveData(1)
+    val pokeCount: LiveData<Int> = _pokeCount
+    // LiveData for buttons enability
+    private val _isForwardButtonEnabled = MutableLiveData(true)
+    val isForwardButtonEnabled: LiveData<Boolean> = _isForwardButtonEnabled
+
+    private val _isBackwardButtonEnabled = MutableLiveData(false)
+    val isBackwardButtonEnabled: LiveData<Boolean> = _isBackwardButtonEnabled
+
+    fun setPokeCount(count: Int) {
+        viewModelScope.launch {
+            _pokeCount.value = count
+
+            // Update the enability of the buttons based on the new pokeCount value
+            _isForwardButtonEnabled.value = count <= 60
+            _isBackwardButtonEnabled.value = count >= 2
+        }
+    }
     init {
-        callPokemonRepos()
+        callPokemonRepos(1)
     }
 
-    private fun callPokemonRepos() {
+
+    init {
+        callPokemonRepos(1)
+    }
+
+    private fun callPokemonRepos(pokeCount: Int) {
         liveDataLoading.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
 
             val pokeList = try {
                 val pokemonList = mutableListOf<CharacterDetail>()
-                for (i in 1..15) {
+                for (i in pokeCount..pokeCount+19) {
                     val pokemon = pokeService.getPokemon(i)
                     pokemonList.add(pokemon)
                 }
@@ -47,8 +72,8 @@ class ListViewModel @Inject constructor(
     }
 
 
-    fun displayGroup() {
-        callPokemonRepos()
+    fun displayGroup(pokeCount: Int) {
+        callPokemonRepos(pokeCount)
     }
 
     fun extractIdFromUrl(url: String): Int {

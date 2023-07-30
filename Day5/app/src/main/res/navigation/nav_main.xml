@@ -13,7 +13,6 @@
         <action
             android:id="@+id/action_detail"
             app:destination="@id/detailFragment" />
-
         <action
             android:id="@+id/action_activity"
             app:destination="@id/mainActivity" />

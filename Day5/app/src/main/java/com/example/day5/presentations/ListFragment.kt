@@ -3,7 +3,9 @@ package com.example.day5.presentations
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.ProgressBar
+import androidx.core.view.isInvisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -19,7 +21,7 @@ class ListFragment : Fragment(R.layout.fragment_list), PokeRecyclerAdapter.OnCli
     private val viewModel by viewModels<ListViewModel>()
 
     private val pokeRecyclerAdapter = PokeRecyclerAdapter(this@ListFragment)
-
+    private var pokeCount = 1
     private lateinit var recyclerView: RecyclerView
     private lateinit var loadingView: ProgressBar
 
@@ -29,12 +31,28 @@ class ListFragment : Fragment(R.layout.fragment_list), PokeRecyclerAdapter.OnCli
         listenViewModel()
     }
 
+
+
     private fun initView(view: View) {
         view.apply {
             recyclerView = findViewById(R.id.recycler)
             recyclerView.adapter = pokeRecyclerAdapter
-            viewModel.displayGroup()
+
+            findViewById<Button>(R.id.forward).setOnClickListener {
+                viewModel.displayGroup(pokeCount +20)
+                pokeCount+= 20
+
+                viewModel.setPokeCount(pokeCount)
+            }
+            findViewById<Button>(R.id.backward).setOnClickListener {
+                viewModel.displayGroup(pokeCount -20)
+                pokeCount-= 20
+
+                viewModel.setPokeCount(pokeCount)
+            }
             loadingView = findViewById(R.id.loading)
+
+
         }
     }
 
@@ -46,6 +64,13 @@ class ListFragment : Fragment(R.layout.fragment_list), PokeRecyclerAdapter.OnCli
             liveDataLoading.observe(viewLifecycleOwner) {
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
                 recyclerView.visibility = if (it) View.GONE else View.VISIBLE
+            }
+            isForwardButtonEnabled.observe(viewLifecycleOwner) { isEnabled ->
+                view?.findViewById<Button>(R.id.forward)?.isEnabled = isEnabled
+            }
+
+            isBackwardButtonEnabled.observe(viewLifecycleOwner) { isEnabled ->
+                view?.findViewById<Button>(R.id.backward)?.isEnabled = isEnabled
             }
         }
     }
