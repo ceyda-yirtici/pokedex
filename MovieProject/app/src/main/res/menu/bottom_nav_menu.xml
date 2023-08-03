@@ -11,7 +11,6 @@
     <item
         android:id="@+id/navigation_favorites"
         android:icon="@drawable/heart_shape"
-        app:iconTint="@color/material_color_red_500"
         android:title="Favorites" />
 
     <item
