@@ -1,15 +1,21 @@
 package com.example.movieproject.ui.movies
 
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movieproject.MovieApplication
 import com.example.movieproject.model.GenreList
 import com.example.movieproject.model.MovieGenre
 import com.example.movieproject.model.MovieList
+import com.example.movieproject.room.AppDatabase
+import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.room.Movie
 import com.example.movieproject.service.MovieService
 import com.example.movieproject.utils.BundleKeys
+import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,11 +24,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MoviesViewModel @Inject constructor(
-    private val movieService: MovieService)
+    private val movieService: MovieService, application: Application
+)
     : ViewModel() {
+
+    private val movieDao: MovieDao
 
     private val _liveDataMovieList = MutableLiveData<MovieList>()
     val liveDataMovieList: LiveData<MovieList> = _liveDataMovieList
+
+
+    private val _liveDataLikedMovieIds = MutableLiveData<List<Int>>()
+    val liveDataLikedMovieIds: LiveData<List<Int>> = _liveDataLikedMovieIds
 
 
     private val _liveDataGenreList = MutableLiveData<HashMap<Int, String>>()
@@ -31,11 +44,30 @@ class MoviesViewModel @Inject constructor(
     private val _liveDataPageNumber = MutableLiveData(1)
 
     init {
+        val database = AppDatabaseProvider.getAppDatabase(application)
+        movieDao = database.movieDao()
+        viewModelScope.launch(Dispatchers.IO) {
+            _liveDataLikedMovieIds.postValue(getLikedMovieIds() as List<Int>?)
+        }
         _liveDataPageNumber.value?.let {
             callMovieRepos(it)
         }
         callGenreRepos()
     }
+    fun getMovieDao(): MovieDao {
+        return movieDao
+    }
+
+    suspend fun getLikedMovieIds(): List<Int> {
+        // Query your Room database to get a list of liked movie IDs
+        return movieDao.getAllByIds()
+    }
+    fun updateLikedMovieIds() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _liveDataLikedMovieIds.postValue(getLikedMovieIds() as List<Int>?)
+        }
+    }
+
     fun setPageNumber(count:Int) {
         viewModelScope.launch {
             _liveDataPageNumber.value = count
@@ -53,6 +85,7 @@ class MoviesViewModel @Inject constructor(
 
         }
     }
+
     private fun callGenreRepos() {
         viewModelScope.launch(Dispatchers.IO) {
            try {
@@ -72,4 +105,6 @@ class MoviesViewModel @Inject constructor(
     fun displayGroup(page:Int) {
             callMovieRepos(page)
     }
+
+
 }

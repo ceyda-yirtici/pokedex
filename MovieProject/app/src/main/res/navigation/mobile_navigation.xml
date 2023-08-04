@@ -8,15 +8,31 @@
     <fragment
         android:id="@+id/navigation_movies"
         android:name="com.example.movieproject.ui.movies.MoviesFragment"
-        tools:layout="@layout/fragment_movies" />
+        tools:layout="@layout/fragment_movies">
+
+    <action
+        android:id="@+id/action_detail"
+        app:destination="@id/detailMovieFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_favorites"
         android:name="com.example.movieproject.ui.favorites.FavoritesFragment"
-        tools:layout="@layout/fragment_favorites" />
+        tools:layout="@layout/fragment_favorites">
+
+    <action
+        android:id="@+id/action_detail"
+        app:destination="@id/detailMovieFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_watchlist"
         android:name="com.example.movieproject.ui.watchlist.WatchlistFragment"
         tools:layout="@layout/fragment_watchlist" />
+    <fragment
+        android:id="@+id/detailMovieFragment"
+        android:name="com.example.movieproject.ui.DetailMovieFragment"
+        android:label="DetailMovieFragment"
+        tools:layout="@layout/fragment_detail"/>
 </navigation>

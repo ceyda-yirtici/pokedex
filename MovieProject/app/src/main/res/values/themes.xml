@@ -1,18 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Light" parent="Theme.AppCompat.Light">
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light">
         <item name="android:windowFullscreen">true</item>
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/material_color_blue_grey_300</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/White_100</item>
-
-
     </style>
-    <style name="AppTheme.NoActionBar">
-        <!-- No parent theme, so it won't inherit any theme colors -->
-        <!-- Customize your style attributes here -->
+    <style name="AppTheme.Toolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="android:background">@color/White_100</item>
     </style>
-    <style name="AppTheme">styles</style>
 </resources>

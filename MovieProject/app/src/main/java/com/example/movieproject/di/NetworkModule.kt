@@ -1,6 +1,10 @@
 package com.example.movieproject.di
 
+import android.app.Application
+import android.content.Context
 import com.example.movieproject.service.MovieService
+import com.example.movieproject.ui.movies.MoviesViewModel
+import dagger.Component
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,5 +45,13 @@ class NetworkModule {
     fun provideMovieService(retrofit: Retrofit) : MovieService {
         return retrofit.create(MovieService::class.java)
     }
+    @Provides
+    fun provideApplication(application: Application): Context {
+        return application
+    }
 
+}
+@Component(modules = [NetworkModule::class])
+interface AppComponent {
+    fun inject(viewModel: MoviesViewModel)
 }
