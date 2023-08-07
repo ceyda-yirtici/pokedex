@@ -19,21 +19,16 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.example.movieproject.R
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.model.MovieList
-import com.example.movieproject.room.AppDatabase
-import com.example.movieproject.room.Movie
 import com.example.movieproject.utils.BundleKeys
 
 
 class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
-    private var movieList: MovieList = MovieList(arrayListOf(),0,0)
+    private var movieList: ArrayList<MovieDetail> = arrayListOf()
     private var genreMapper : HashMap<Int, String> = HashMap()
     private var likedMovieIds: List<Int> = emptyList()
-     var currentPage: Int = 1
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var  onBottomReachedListener: OnBottomReachedListener
-
     private lateinit var listener: OnClickListener
 
     interface OnClickListener {
@@ -43,7 +38,6 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
             movieList: View,
             results: ArrayList<MovieDetail>
         )
-
 
     }
     fun setOnClickListener(listener: OnClickListener){
@@ -56,15 +50,25 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
     fun setOnBottomReachedListener(onBottomReachedListener: OnBottomReachedListener) {
         this.onBottomReachedListener = onBottomReachedListener
     }
-    fun updateList(item: MovieList) {
+    fun updateList(item: ArrayList<MovieDetail>) {
         handler.post {
             item.let {
-                movieList.results.addAll(it.results)
-                Log.e("updated list", movieList.results.toString())
+                movieList = it
             }
+            Log.d("upp", movieList.toString())
             notifyDataSetChanged()
         }
     }
+    fun addToList(item: ArrayList<MovieDetail>) {
+        handler.post {
+            item.let {
+                movieList.addAll(it)
+            }
+            Log.d("upp", movieList.toString())
+            notifyDataSetChanged()
+        }
+    }
+
     fun setLikedMovieIds(movies: List<Int>) {
         likedMovieIds = movies
         notifyDataSetChanged()
@@ -76,16 +80,16 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
         val movie: TextView = itemView.findViewById(R.id.movie)
         val photo: ImageView = itemView.findViewById(R.id.photo)
         val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
-        val heartButton: ImageButton = itemView.findViewById(R.id.heart_in_list)
+        val heartButton: ImageButton = itemView.findViewById(R.id.heart_in_detail)
         val date: TextView = itemView.findViewById(R.id.release_date)
 
         init {
             itemView.setOnClickListener {
-                listener.onMovieClick(adapterPosition,itemView, movieList.results)
+                listener.onMovieClick(adapterPosition,itemView, movieList)
             }
             heartButton.setOnClickListener {
                 val position = adapterPosition
-                listener.onHeartButtonClick(position, itemView, movieList.results)
+                listener.onHeartButtonClick(position, itemView, movieList)
             }
         }
         fun bind(detail: MovieDetail) {
@@ -95,6 +99,9 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
             date.text = detail.release_date.subSequence(0,4)
 
             if (likedMovieIds.contains(detail.id)) {
+                detail.heart_tag = "filled"
+            }
+            if ( detail.heart_tag == "filled") {
                 // Movie is liked, update the UI accordingly
                 heartButton.setImageResource(R.drawable.heart_shape_red)
                 heartButton.tag = "filled"
@@ -113,17 +120,28 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
         return MovieViewHolder(itemView, listener)
     }
 
-    override fun getItemCount() = movieList.results.size
+    override fun getItemCount() = movieList.size
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
-        holder.bind(movieList.results[position])
-        if (position == movieList.results.size - 1) {
+        holder.bind(movieList[position])
+        if (position == movieList.size - 1) {
             onBottomReachedListener.onBottomReached(position)
-            currentPage += 1
         }
-        if(!genreMapper.isEmpty()) {
-            decideAddingGenreView(holder, position)
+        val genreNamesOfTheMovies = arrayListOf<String>()
+        if(genreMapper.isNotEmpty()) {
+
+            for (genreId in movieList[position].genre_ids) {
+
+                val genreName = genreMapper[genreId]
+                if (genreName != null) {
+                    genreNamesOfTheMovies.add(genreName)
+                }
+            }
         }
+        else genreNamesOfTheMovies.addAll(movieList[position].genres.map { it.genre_name })
+
+
+        decideAddingGenreView(holder, genreNamesOfTheMovies)
 
     }
     fun sendGenreList(it: HashMap<Int, String>) {
@@ -135,7 +153,7 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
     private fun convertPixelsToDp(px: Int, context: Context): Int {
         return (px / context.resources.displayMetrics.density).toInt()
     }
-    private fun decideAddingGenreView(holder: MovieViewHolder, position: Int){
+    private fun decideAddingGenreView(holder: MovieViewHolder, genre_names: ArrayList<String>){
 
         val genreContainer: LinearLayout = holder.itemView.findViewById(R.id.genreContainer)
         // Clear any previous genres before adding new ones
@@ -149,8 +167,7 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
 
         // Add each genre to the LinearLayout as separate rounded corner boxes
         var totalWidthInDp = 0
-        for (genreId in movieList.results[position].genre_ids) {
-            val genreName = genreMapper[genreId]
+        for (genreName in genre_names) {
             Log.d("GenreAdapter", "Genre Name: $genreName")
             val genreView = LayoutInflater.from(holder.itemView.context)
                 .inflate(R.layout.item_genre, genreContainer, false)

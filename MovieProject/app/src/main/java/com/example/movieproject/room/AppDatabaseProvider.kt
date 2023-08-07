@@ -12,7 +12,6 @@ object AppDatabaseProvider {
             database ?: buildDatabase(context).also { database = it }
         }
     }
-
     private fun buildDatabase(context: Context): AppDatabase {
         return Room.databaseBuilder(
             context.applicationContext,

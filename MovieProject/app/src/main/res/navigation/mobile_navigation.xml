@@ -32,7 +32,7 @@
         tools:layout="@layout/fragment_watchlist" />
     <fragment
         android:id="@+id/detailMovieFragment"
-        android:name="com.example.movieproject.ui.DetailMovieFragment"
+        android:name="com.example.movieproject.ui.moviedetail.DetailMovieFragment"
         android:label="DetailMovieFragment"
         tools:layout="@layout/fragment_detail"/>
 </navigation>

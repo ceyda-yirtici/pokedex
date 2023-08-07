@@ -21,10 +21,13 @@ interface MovieDao {
 
 
     @Query("SELECT * FROM movie_table WHERE movie_id IN (:movieIds)")
-    fun loadAllByIds(movieIds: IntArray): List<com.example.movieproject.room.Movie>
+    suspend fun loadAllByIds(movieIds: IntArray): List<com.example.movieproject.room.Movie>
 
     @Query("SELECT COUNT(*) FROM movie_table WHERE movie_id = :movieId")
     fun getCountById(movieId: Int): Int
+
+    @Query("SELECT COUNT(*) FROM movie_table")
+    fun getCount(): Int
 
     @Insert
     fun insert(movie: Movie)

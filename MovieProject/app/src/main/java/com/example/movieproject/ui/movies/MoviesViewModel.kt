@@ -33,6 +33,7 @@ class MoviesViewModel @Inject constructor(
     private val _liveDataMovieList = MutableLiveData<MovieList>()
     val liveDataMovieList: LiveData<MovieList> = _liveDataMovieList
 
+    val liveDataLoading = MutableLiveData<Boolean>()
 
     private val _liveDataLikedMovieIds = MutableLiveData<List<Int>>()
     val liveDataLikedMovieIds: LiveData<List<Int>> = _liveDataLikedMovieIds
@@ -47,7 +48,7 @@ class MoviesViewModel @Inject constructor(
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
         viewModelScope.launch(Dispatchers.IO) {
-            _liveDataLikedMovieIds.postValue(getLikedMovieIds() as List<Int>?)
+            _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
         }
         _liveDataPageNumber.value?.let {
             callMovieRepos(it)
@@ -82,7 +83,7 @@ class MoviesViewModel @Inject constructor(
                 ""
             }
             _liveDataMovieList.postValue(movieList as MovieList?)
-
+            liveDataLoading.postValue(false)
         }
     }
 

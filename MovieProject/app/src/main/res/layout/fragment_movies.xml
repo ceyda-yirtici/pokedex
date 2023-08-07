@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.movies.MoviesFragment">
 
+
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -19,6 +20,16 @@
 
         <include layout="@layout/toolbar_custom_layout" />
     </androidx.appcompat.widget.Toolbar>
+
+
+    <ProgressBar
+        android:id="@+id/loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 
     <androidx.recyclerview.widget.RecyclerView

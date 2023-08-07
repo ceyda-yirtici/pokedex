@@ -4,45 +4,169 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentFavoritesBinding
-import com.example.movieproject.room.AppDatabase
+import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.ui.moviedetail.DetailMovieFragment
+import com.example.movieproject.ui.movies.MovieRecyclerAdapter
+import com.example.movieproject.utils.BundleKeys
+import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
-class FavoritesFragment : Fragment() {
+class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
-    private var _binding: FragmentFavoritesBinding? = null
-    private lateinit var db: AppDatabase
+    private lateinit var movieDao: MovieDao
+    private lateinit var binding: FragmentFavoritesBinding
+    private var pageCount = 1
+    private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    private val binding get() = _binding!!
+    private lateinit var movieRecyclerAdapter: MovieRecyclerAdapter
+
+    private lateinit var loadingView: ProgressBar
+    private lateinit var recyclerView: RecyclerView
+
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        val favoritesViewModel =
-            ViewModelProvider(this).get(FavoritesViewModel::class.java)
-        db = AppDatabaseProvider.getAppDatabase(requireContext().applicationContext) // lazy, di, hilt
-
-        _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-
-        val textView: TextView = binding.textFavorites
-        favoritesViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
-        return root
+    ): View? {
+        binding = FragmentFavoritesBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
+        toolbarTitle.text = "Favorites Movies"
+
+        val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
+        movieDao = database.movieDao()
+
+        initView(view)
+        listenViewModel()
+    }
+    private fun initView(view: View) {
+        view.apply {
+            recyclerView = binding.recycler
+            val layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.layoutManager = layoutManager
+
+            // Create the adapter instance
+            movieRecyclerAdapter = MovieRecyclerAdapter()
+
+            // Set the adapter to the RecyclerView
+            recyclerView.adapter = movieRecyclerAdapter
+
+            loadingView = binding.loading
+        }
+    }
+
+
+    private fun listenViewModel() {
+        viewModel.apply {
+            liveDataFavoritesList.observe(viewLifecycleOwner) {
+                movieRecyclerAdapter.updateList(it)
+            }
+            liveDataLoading.observe(viewLifecycleOwner) {
+                loadingView.visibility = if (it) View.VISIBLE else View.GONE
+                recyclerView.visibility = if (it) View.GONE else View.VISIBLE
+            }
+            movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
+                override fun onBottomReached(position: Int) {
+
+                    viewModelScope.launch {
+                        databaseList.collect { hashMap ->
+                            viewModel.displayGroup(hashMap.toMutableMap())
+                        }
+                    }
+
+
+                }
+            })
+            movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
+                override fun onMovieClick(position: Int, movieView : View,  movieList: ArrayList<MovieDetail>) {
+                    movieClicked(position, movieView, movieList)
+                }
+
+                override fun onHeartButtonClick(
+                    adapterPosition: Int,
+                    movieView: View,
+                    results: ArrayList<MovieDetail>
+                ) {
+                    heartButtonClicked(adapterPosition, movieView, results)
+
+
+                }
+
+            })
+
+        }
+    }
+
+
+
+
+
+
+    private fun movieClicked(position: Int, movieView:View, movieList: ArrayList<MovieDetail>) {
+        val clickedMovie = movieList[position]
+        val id = clickedMovie.id
+        val heart_tag = clickedMovie.heart_tag
+        val bundle = Bundle().apply {
+            putInt(BundleKeys.REQUEST_ID, id)
+            putInt(BundleKeys.position, position)
+            putString(BundleKeys.HEART_TAG, heart_tag)
+        }
+
+        val destinationFragment = DetailMovieFragment()
+        destinationFragment.arguments = bundle
+        findNavController().navigate(R.id.action_detail, bundle) // R.id.action_detail
+
+    }
+
+    private fun heartButtonClicked(position: Int, itemView: View, results: ArrayList<MovieDetail>){
+        val heartButton: ImageButton = itemView.findViewById(R.id.heart_in_detail)
+
+        val clickedMovie = results[position]
+
+        if ( clickedMovie.heart_tag == "filled") {
+            heartButton.setImageResource(R.drawable.heart_shape_outlined)
+            clickedMovie.heart_tag = "outline"
+            removeMovieFromDB(clickedMovie, heartButton)
+        }
+
+
+    }
+    private fun removeMovieFromDB(clickedMovie: MovieDetail, heartButton: ImageButton){
+
+        lifecycleScope.launch {
+            try {
+                // Execute the database operation on the IO dispatcher
+                withContext(Dispatchers.IO) {
+                    movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
+                    //viewModel.updateLikedMovieIds()
+                }
+
+            } catch (e: Exception) {
+                heartButton.setImageResource(R.drawable.heart_shape_red)
+                clickedMovie.heart_tag  = "filled"
+            }
+        }
+
     }
 }
