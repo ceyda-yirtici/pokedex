@@ -82,9 +82,9 @@ class FavoritesViewModel @Inject constructor(
     }
     fun displayGroup(toMutableMap: MutableMap<Int, Boolean>) {
         val nextTenKeys = setList(toMutableMap)
+
         if (nextTenKeys.isNotEmpty())
             callMovieRepos(nextTenKeys)
-
         }
     }
 

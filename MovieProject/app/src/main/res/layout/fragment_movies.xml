@@ -15,10 +15,14 @@
         android:elevation="4dp"
         android:theme="@style/AppTheme.Toolbar"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent">
 
         <include layout="@layout/toolbar_custom_layout" />
+
+
     </androidx.appcompat.widget.Toolbar>
 
 
@@ -31,6 +35,19 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
+    <GridView
+        android:id="@+id/gridView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:numColumns="3"
+        android:verticalSpacing="6dp"
+        android:horizontalSpacing="6dp"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:padding="8dp"
+        android:gravity="center"
+        android:stretchMode="columnWidth"
+        android:clipToPadding="false"
+        />
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_marginTop="?attr/actionBarSize"

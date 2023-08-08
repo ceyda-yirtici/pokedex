@@ -1,4 +1,4 @@
-package com.example.movieproject.ui.movies
+package com.example.movieproject.ui
 
 import android.content.Context
 import android.content.res.Resources
@@ -22,22 +22,24 @@ import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.utils.BundleKeys
 
 
-class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
+class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
     private var movieList: ArrayList<MovieDetail> = arrayListOf()
     private var genreMapper : HashMap<Int, String> = HashMap()
     private var likedMovieIds: List<Int> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
-    private lateinit var  onBottomReachedListener: OnBottomReachedListener
+    private lateinit var onBottomReachedListener: OnBottomReachedListener
     private lateinit var listener: OnClickListener
 
     interface OnClickListener {
-        fun onMovieClick(position: Int,  movieList: View, pokeList: ArrayList<MovieDetail> )
+        fun onMovieClick(position: Int,  movieView: View, movieList: ArrayList<MovieDetail> )
         fun onHeartButtonClick(
             adapterPosition: Int,
-            movieList: View,
-            results: ArrayList<MovieDetail>
+            movieView: View,
+            movieList: ArrayList<MovieDetail>,
+            heartButton: ImageButton
         )
+
 
     }
     fun setOnClickListener(listener: OnClickListener){
@@ -52,13 +54,15 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
     }
     fun updateList(item: ArrayList<MovieDetail>) {
         handler.post {
-            item.let {
-                movieList = it
+            item.forEach { movieDetail ->
+                movieDetail.heart_tag = "filled"
             }
+            movieList = item
             Log.d("upp", movieList.toString())
             notifyDataSetChanged()
         }
     }
+
     fun addToList(item: ArrayList<MovieDetail>) {
         handler.post {
             item.let {
@@ -75,8 +79,6 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
     }
 
     inner class MovieViewHolder(itemView: View,  listener: OnClickListener) : ViewHolder(itemView) {
-
-
         val movie: TextView = itemView.findViewById(R.id.movie)
         val photo: ImageView = itemView.findViewById(R.id.photo)
         val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
@@ -89,8 +91,9 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
             }
             heartButton.setOnClickListener {
                 val position = adapterPosition
-                listener.onHeartButtonClick(position, itemView, movieList)
+                listener.onHeartButtonClick(position, itemView, movieList, heartButton)
             }
+
         }
         fun bind(detail: MovieDetail) {
             Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
@@ -110,7 +113,6 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
                 heartButton.setImageResource(R.drawable.heart_shape_outlined)
                 heartButton.tag = "outline"
             }
-
         }
     }
 
@@ -124,11 +126,12 @@ class MovieRecyclerAdapter() : RecyclerView.Adapter<MovieRecyclerAdapter.MovieVi
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
         holder.bind(movieList[position])
-        if (position == movieList.size - 1) {
+
+        if (position == movieList.size -1 ) {
             onBottomReachedListener.onBottomReached(position)
         }
         val genreNamesOfTheMovies = arrayListOf<String>()
-        if(genreMapper.isNotEmpty()) {
+        if (genreMapper != emptyMap<Int, String>()) {
 
             for (genreId in movieList[position].genre_ids) {
 

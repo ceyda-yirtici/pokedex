@@ -19,7 +19,7 @@ import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
-import com.example.movieproject.ui.movies.MovieRecyclerAdapter
+import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +32,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
     private lateinit var movieDao: MovieDao
     private lateinit var binding: FragmentFavoritesBinding
-    private var pageCount = 1
     private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
 
     private lateinit var movieRecyclerAdapter: MovieRecyclerAdapter
@@ -88,14 +87,12 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
-
+                    if (position  + 1 < movieRecyclerAdapter.itemCount)
                     viewModelScope.launch {
                         databaseList.collect { hashMap ->
                             viewModel.displayGroup(hashMap.toMutableMap())
                         }
                     }
-
-
                 }
             })
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
@@ -106,7 +103,8 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 override fun onHeartButtonClick(
                     adapterPosition: Int,
                     movieView: View,
-                    results: ArrayList<MovieDetail>
+                    results: ArrayList<MovieDetail>,
+                    heartButton: ImageButton
                 ) {
                     heartButtonClicked(adapterPosition, movieView, results)
 

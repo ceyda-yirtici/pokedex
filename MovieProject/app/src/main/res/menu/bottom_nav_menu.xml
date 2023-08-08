@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/navigation_favorites"
-        android:icon="@drawable/heart_shape"
+        android:icon="@drawable/heart_shape_grey"
         android:title="Favorites" />
 
     <item

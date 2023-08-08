@@ -1,17 +1,23 @@
 package com.example.movieproject.ui.movies
 
-import android.annotation.SuppressLint
+import GridMovieAdapter
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentMoviesBinding
@@ -20,6 +26,7 @@ import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.utils.BundleKeys
 import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -30,44 +37,104 @@ import kotlinx.coroutines.withContext
 class MoviesFragment : Fragment(R.layout.fragment_movies){
 
     private lateinit var movieDao: MovieDao
-    private lateinit var _binding: FragmentMoviesBinding
+    private lateinit var binding: FragmentMoviesBinding
     private var pageCount = 1
     private val viewModel: MoviesViewModel by viewModels(ownerProducer = { this })
-    private var isLoadingMore = false
     private lateinit var movieRecyclerAdapter: MovieRecyclerAdapter
-
+    private lateinit var gridMovieAdapter: GridMovieAdapter
     private lateinit var loadingView: ProgressBar
     private lateinit var recyclerView: RecyclerView
+    private lateinit var gridView: GridView
+    private var heartResource: Int = R.drawable.heart_shape_grey
+    private var heartDrawable: Drawable = ColorDrawable(Color.TRANSPARENT)
 
 
-    @SuppressLint("SetTextI18n")
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = FragmentMoviesBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
         super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
         toolbarTitle.text = "Popular Movies"
-
+        Log.d("view", "created")
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
 
         initView(view)
-        listenViewModel()
+        listenGridView()
+        //listenViewModel()
     }
+
+
     private fun initView(view: View){
         view.apply {
+
+            //val layoutManager = LinearLayoutManager(requireContext())
+            /*
             recyclerView = findViewById(R.id.recycler)
-            val layoutManager = LinearLayoutManager(requireContext())
             recyclerView.layoutManager = layoutManager
             // Create the adapter instance
             movieRecyclerAdapter = MovieRecyclerAdapter()
             // Set the adapter to the RecyclerView
-            recyclerView.adapter = movieRecyclerAdapter
+            recyclerView.adapter = movieRecyclerAdapter*/
+            gridView = findViewById(R.id.gridView)
+            gridMovieAdapter = GridMovieAdapter(requireContext())
+            heartResource = R.drawable.heart_shape_grey
+            // Set the adapter for the GridView
+            gridView.adapter = gridMovieAdapter
             loadingView = findViewById(R.id.loading)
         }
 
     }
 
 
+    private fun listenGridView() {
+        viewModel.apply {
+            liveDataMovieList.observe(viewLifecycleOwner) {
+                gridMovieAdapter.updateMovieList(it.results)
+            }
+            liveDataLoading.observe(viewLifecycleOwner) {
+                loadingView.visibility = if (it) View.VISIBLE else View.GONE
+                gridView.visibility = if (it) View.GONE else View.VISIBLE
+            }
+            viewModel.liveDataLikedMovieIds.observe(viewLifecycleOwner) {
+                gridMovieAdapter.setLikedMovieIds(it)
+            }
+            gridMovieAdapter.setOnClickListener(object : GridMovieAdapter.OnClickListener{
+                override fun onMovieClick(position: Int, movieView : View,  movieList: ArrayList<MovieDetail>) {
+                    movieClicked(position, movieView, movieList)
+                }
+
+                override fun onHeartButtonClick(
+                    adapterPosition: Int,
+                    movieView: View,
+                    results: ArrayList<MovieDetail>,
+                    heartButton: ImageButton
+                ) {
+                    heartButtonClicked(adapterPosition, movieView, results, heartButton)
+
+
+                }
+
+            })
+            gridMovieAdapter.setOnBottomReachedListener(object : GridMovieAdapter.OnBottomReachedListener{
+                override fun onBottomReached(position: Int) {
+                    Log.e("initview", "you reached end")
+                    pageCount++
+                    viewModel.setPageNumber(pageCount)
+                    viewModel.displayGroup(pageCount)
+
+
+                }
+            })
+        }
+    }
     private fun listenViewModel() {
         viewModel.apply {
             liveDataMovieList.observe(viewLifecycleOwner) {
@@ -102,9 +169,10 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
                 override fun onHeartButtonClick(
                     adapterPosition: Int,
                     movieView: View,
-                    results: ArrayList<MovieDetail>
+                    results: ArrayList<MovieDetail>,
+                    heartButton : ImageButton
                 ) {
-                    heartButtonClicked(adapterPosition, movieView, results)
+                    heartButtonClicked(adapterPosition, movieView, results, heartButton)
 
 
                 }
@@ -135,13 +203,17 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
 
     }
 
-    private fun heartButtonClicked(position: Int, itemView: View, results: ArrayList<MovieDetail>){
-        val heartButton: ImageButton = itemView.findViewById(R.id.heart_in_detail)
+    private fun heartButtonClicked(
+        position: Int,
+        itemView: View,
+        results: ArrayList<MovieDetail>,
+        heartButton: ImageButton
+    ){
 
         val clickedMovie = results[position]
 
         if ( clickedMovie.heart_tag == "filled") {
-            heartButton.setImageResource(R.drawable.heart_shape_outlined)
+            heartButton.setImageResource(heartResource)
             clickedMovie.heart_tag = "outline"
             removeMovieFromDB(clickedMovie, heartButton)
         } else {
@@ -164,7 +236,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
                 }
 
             } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_outlined)
+                heartButton.setImageResource(heartResource)
                 clickedMovie.heart_tag = "outline"
             }
         }
