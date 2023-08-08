@@ -32,7 +32,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     private lateinit var movieDao: MovieDao
     private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
     private lateinit var binding: FragmentDetailBinding
-
+    private var movieId: Int = -1
     private lateinit var loadingView: ProgressBar
 
     override fun onCreateView(
@@ -48,14 +48,14 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val movieId = requireArguments().getInt(BundleKeys.REQUEST_ID)
+        movieId = requireArguments().getInt(BundleKeys.REQUEST_ID)
         view.apply {
             loadingView = binding.loading
         }
-        listenViewModel(movieId)
+        listenViewModel()
     }
 
-    private fun listenViewModel(movieId: Int) {
+    private fun listenViewModel() {
 
         viewModel.apply {
             liveDataMovie.observe(viewLifecycleOwner) {
@@ -108,15 +108,22 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         binding.title.text = it.title
         binding.movieDescription.text = it.overview
         binding.releaseDate.text = it.release_date.subSequence(0,4)
-        it.heart_tag = requireArguments().getString(BundleKeys.HEART_TAG).toString()
-        if (it.heart_tag == "filled") {
-            binding.heartInDetail.setImageResource(R.drawable.heart_shape_red)
-        } else {
-            binding.heartInDetail.setImageResource(R.drawable.heart_shape_outlined)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val count = withContext(Dispatchers.IO) {
+                movieDao.getCountById(movieId)
+            }
+            if (count > 0) {
+                binding.heartInDetail.setImageResource(R.drawable.heart_shape_red)
+                it.heart_tag = "filled"
+            } else {
+                binding.heartInDetail.setImageResource(R.drawable.heart_shape_outlined)
+                it.heart_tag = "outline"
+            }
+            val photo = binding.detailPhoto
+            val photoUrl = it.backdrop_path
+            Glide.with(photo).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).into(photo)
         }
-        val photo = binding.detailPhoto
-        val photoUrl = it.backdrop_path
-        Glide.with(photo).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).into(photo)
 
     }
     private fun addMovieToDB(clickedMovie: MovieDetail, heartButton: ImageButton){

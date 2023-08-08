@@ -19,8 +19,8 @@
     <ImageButton
         android:id="@+id/heart_in_detail"
         android:src="@drawable/heart_shape_outlined"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:background="@color/White_100"
         android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"

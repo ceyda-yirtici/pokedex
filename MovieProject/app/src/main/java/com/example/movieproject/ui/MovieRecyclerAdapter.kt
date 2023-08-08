@@ -24,7 +24,7 @@ import com.example.movieproject.utils.BundleKeys
 
 class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
-    private var movieList: ArrayList<MovieDetail> = arrayListOf()
+    private var movieList: MutableList<MovieDetail> = mutableListOf()
     private var genreMapper : HashMap<Int, String> = HashMap()
     private var likedMovieIds: List<Int> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
@@ -33,15 +33,13 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     private var viewMovieType: Boolean = true
 
     interface OnClickListener {
-        fun onMovieClick(position: Int,  movieView: View, movieList: ArrayList<MovieDetail> )
+        fun onMovieClick(position: Int,  movieView: View, movieList: MutableList<MovieDetail> )
         fun onHeartButtonClick(
             adapterPosition: Int,
             movieView: View,
-            movieList: ArrayList<MovieDetail>,
+            movieList: MutableList<MovieDetail>,
             heartButton: ImageButton
         )
-
-
     }
     fun setOnClickListener(listener: OnClickListener){
         this.listener = listener
@@ -67,10 +65,10 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         viewMovieType = viewType
     }
 
-    fun addToList(item: ArrayList<MovieDetail>) {
+    fun addToList(item: MutableList<MovieDetail>) {
         handler.post {
             item.let {
-                movieList.addAll(it)
+                movieList = updateLikedStatusInMovieList(item)
             }
             Log.d("upp", movieList.toString())
             notifyDataSetChanged()
@@ -81,16 +79,22 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         likedMovieIds = movies
         notifyDataSetChanged()
     }
+    private fun updateLikedStatusInMovieList(item: MutableList<MovieDetail>): MutableList<MovieDetail> {
+        for (movie in item) {
+            movie.heart_tag = if (likedMovieIds.contains(movie.id)) "filled" else "outline"
+        }
+
+        return item
+    }
 
     inner class MovieViewHolder(itemView: View, listener: OnClickListener, viewMovieType: Boolean) : ViewHolder(itemView) {
-
 
         private var  heartButton: ImageButton
 
         init {
 
-            if(viewMovieType) heartButton = itemView.findViewById(R.id.heart_in_detail)
-            else heartButton = itemView.findViewById(R.id.heart_in_grid)
+            heartButton = if (viewMovieType) itemView.findViewById(R.id.heart_in_detail)
+                    else itemView.findViewById(R.id.heart_in_grid)
 
             itemView.setOnClickListener {
                 listener.onMovieClick(adapterPosition,itemView, movieList)
@@ -102,11 +106,13 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
 
         }
         fun bind(detail: MovieDetail) {
+            val heartResource: Int
+
             if(viewMovieType) {
                 val movie: TextView = itemView.findViewById(R.id.movie)
                 val photo: ImageView = itemView.findViewById(R.id.photo)
                 val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
-
+                heartResource= R.drawable.heart_shape_outlined
                 val date: TextView = itemView.findViewById(R.id.release_date)
 
                 Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
@@ -115,7 +121,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 date.text = detail.release_date.subSequence(0, 4)
             }
             else {
-
+                heartResource= R.drawable.heart_shape_grey
                 val movie: TextView = itemView.findViewById(R.id.title_grid)
                 val photo: ImageView = itemView.findViewById(R.id.photoGrid)
 
@@ -124,17 +130,13 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
             }
 
 
-            if (likedMovieIds.contains(detail.id)) {
-                detail.heart_tag = "filled"
-            }
-            if ( detail.heart_tag == "filled") {
+
+            if (detail.heart_tag == "filled") {
                 // Movie is liked, update the UI accordingly
                 heartButton.setImageResource(R.drawable.heart_shape_red)
-                heartButton.tag = "filled"
             } else {
                 // Movie is not liked, update the UI accordingly
-                heartButton.setImageResource(R.drawable.heart_shape_outlined)
-                heartButton.tag = "outline"
+                heartButton.setImageResource(heartResource)
             }
         }
     }

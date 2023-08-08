@@ -2,6 +2,8 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="130dp"
     android:layout_height="195dp"
+    android:layout_marginStart="6dp"
+    android:layout_marginTop="6dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
@@ -9,15 +11,15 @@
         android:id="@+id/photoGrid"
         android:layout_width="110dp"
         android:layout_height="165dp"
-        android:layout_margin="6dp"
+        android:layout_margin="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/heart_in_grid"
         android:src="@drawable/heart_shape_outlined"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:background="#00000000"
         android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="@id/photoGrid"

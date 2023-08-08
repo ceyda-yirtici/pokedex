@@ -18,6 +18,7 @@ import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
@@ -34,7 +35,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     private lateinit var binding: FragmentFavoritesBinding
     private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
 
-    private lateinit var movieRecyclerAdapter: MovieRecyclerAdapter
+    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
 
     private lateinit var loadingView: ProgressBar
     private lateinit var recyclerView: RecyclerView
@@ -59,6 +60,11 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         initView(view)
         listenViewModel()
     }
+
+    override fun onStart(){
+        super.onStart()
+        viewModel.refresh()
+    }
     private fun initView(view: View) {
         view.apply {
             recyclerView = binding.recycler
@@ -66,7 +72,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             recyclerView.layoutManager = layoutManager
 
             // Create the adapter instance
-            movieRecyclerAdapter = MovieRecyclerAdapter()
 
             // Set the adapter to the RecyclerView
             recyclerView.adapter = movieRecyclerAdapter
@@ -74,6 +79,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             loadingView = binding.loading
         }
     }
+
 
 
     private fun listenViewModel() {
@@ -87,23 +93,23 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
-                    if (position  + 1 < movieRecyclerAdapter.itemCount)
                     viewModelScope.launch {
                         databaseList.collect { hashMap ->
                             viewModel.displayGroup(hashMap.toMutableMap())
                         }
                     }
+
                 }
             })
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
-                override fun onMovieClick(position: Int, movieView : View,  movieList: ArrayList<MovieDetail>) {
+                override fun onMovieClick(position: Int, movieView : View,  movieList: MutableList<MovieDetail>) {
                     movieClicked(position, movieView, movieList)
                 }
 
                 override fun onHeartButtonClick(
                     adapterPosition: Int,
                     movieView: View,
-                    results: ArrayList<MovieDetail>,
+                    results: MutableList<MovieDetail>,
                     heartButton: ImageButton
                 ) {
                     heartButtonClicked(adapterPosition, movieView, results)
@@ -121,14 +127,12 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
 
 
-    private fun movieClicked(position: Int, movieView:View, movieList: ArrayList<MovieDetail>) {
+    private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
-        val heart_tag = clickedMovie.heart_tag
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_ID, id)
             putInt(BundleKeys.position, position)
-            putString(BundleKeys.HEART_TAG, heart_tag)
         }
 
         val destinationFragment = DetailMovieFragment()
@@ -137,7 +141,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
     }
 
-    private fun heartButtonClicked(position: Int, itemView: View, results: ArrayList<MovieDetail>){
+    private fun heartButtonClicked(position: Int, itemView: View, results: MutableList<MovieDetail>){
         val heartButton: ImageButton = itemView.findViewById(R.id.heart_in_detail)
 
         val clickedMovie = results[position]
@@ -147,7 +151,11 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             clickedMovie.heart_tag = "outline"
             removeMovieFromDB(clickedMovie, heartButton)
         }
-
+        else {
+            heartButton.setImageResource(R.drawable.heart_shape_red)
+            clickedMovie.heart_tag = "filled"
+            addMovieToDB(clickedMovie, heartButton)
+        }
 
     }
     private fun removeMovieFromDB(clickedMovie: MovieDetail, heartButton: ImageButton){
@@ -157,7 +165,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 // Execute the database operation on the IO dispatcher
                 withContext(Dispatchers.IO) {
                     movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                    //viewModel.updateLikedMovieIds()
+                    viewModel.refresh()
                 }
 
             } catch (e: Exception) {
@@ -166,5 +174,22 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
         }
 
+    }
+    private fun addMovieToDB(clickedMovie: MovieDetail, heartButton: ImageButton){
+
+        val newMovie = Movie(movie_id = clickedMovie.id)
+        lifecycleScope.launch {
+            try {
+                // Execute the database operation on the IO dispatcher
+                withContext(Dispatchers.IO) {
+                    movieDao.insert(newMovie)
+                    viewModel.refresh()
+                }
+
+            } catch (e: Exception) {
+                heartButton.setImageResource(R.drawable.heart_shape_outlined)
+                clickedMovie.heart_tag = "outline"
+            }
+        }
     }
 }

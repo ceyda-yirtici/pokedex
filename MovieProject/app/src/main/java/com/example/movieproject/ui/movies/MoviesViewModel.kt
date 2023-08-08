@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movieproject.MovieApplication
 import com.example.movieproject.model.GenreList
+import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.model.MovieGenre
 import com.example.movieproject.model.MovieList
 import com.example.movieproject.room.AppDatabase
@@ -31,8 +32,8 @@ class MoviesViewModel @Inject constructor(
 
     private val movieDao: MovieDao
 
-    private val _liveDataMovieList = MutableLiveData<MovieList>()
-    val liveDataMovieList: LiveData<MovieList> = _liveDataMovieList
+    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>()
+    val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
     private val _liveDataViewType = MutableLiveData<Boolean>()
     val liveDataViewType: LiveData<Boolean> = _liveDataViewType
@@ -63,7 +64,9 @@ class MoviesViewModel @Inject constructor(
         return movieDao
     }
 
-    suspend fun getLikedMovieIds(): List<Int> {
+
+
+    private fun getLikedMovieIds(): List<Int> {
         // Query your Room database to get a list of liked movie IDs
         return movieDao.getAllByIds()
     }
@@ -74,21 +77,25 @@ class MoviesViewModel @Inject constructor(
     }
 
     fun setPageNumber(count:Int) {
-        viewModelScope.launch {
-            _liveDataPageNumber.value = count
+        viewModelScope.launch(Dispatchers.IO) {
+            _liveDataPageNumber.postValue(count)
         }
     }
-    private fun callMovieRepos(page:Int) {
+    private fun callMovieRepos(page: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val movieList = try {
-                movieService.getMovieList(BundleKeys.API_KEY, page)
+            try {
+                val newMovieList = movieService.getMovieList(BundleKeys.API_KEY, page)
+                val currentList = _liveDataMovieList.value ?: emptyList()
+                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
+                    addAll(newMovieList.results)
+                }
+
+                _liveDataMovieList.postValue(updatedList)
+                liveDataLoading.postValue(false)
+                _liveDataViewType.postValue(true)
+            } catch (exception: Exception) {
+                // Handle exception
             }
-            catch  (exception: Exception) {
-                ""
-            }
-            _liveDataMovieList.postValue(movieList as MovieList?)
-            liveDataLoading.postValue(false)
-            _liveDataViewType.postValue(true)
         }
     }
 
@@ -108,9 +115,11 @@ class MoviesViewModel @Inject constructor(
             }
         }
     }
+
     fun displayGroup(page:Int) {
             callMovieRepos(page)
     }
+
 
 
 }

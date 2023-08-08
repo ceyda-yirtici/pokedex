@@ -62,6 +62,10 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
+    fun refresh(){
+        createList()
+    }
+
     private fun createList() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {

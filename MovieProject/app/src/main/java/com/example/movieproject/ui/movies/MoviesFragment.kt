@@ -41,20 +41,18 @@ class MoviesFragment : Fragment(){
     private lateinit var binding: FragmentMoviesBinding
     private var pageCount = 1
     private val viewModel: MoviesViewModel by viewModels(ownerProducer = { this })
-    private lateinit var movieRecyclerAdapter: MovieRecyclerAdapter
+    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
     private lateinit var loadingView: ProgressBar
     private lateinit var recyclerView: RecyclerView
     private var heartResource: Int = R.drawable.heart_shape_grey
-    private var heartDrawable: Drawable = ColorDrawable(Color.TRANSPARENT)
     private lateinit var viewButton: ImageButton
     private var listViewType = true
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Log.d("view", "create")
         binding = FragmentMoviesBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -62,13 +60,13 @@ class MoviesFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
         toolbarTitle.text = "Popular Movies"
-        Log.d("view", "created")
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
         initView(view)
 
         super.onViewCreated(view, savedInstanceState)
     }
+
 
     private fun initView(view: View){
         view.apply {
@@ -79,7 +77,6 @@ class MoviesFragment : Fragment(){
                 setupViewMode()
                 listenViewModel()
             }
-
             setupViewMode()
             listenViewModel()
         }
@@ -88,78 +85,30 @@ class MoviesFragment : Fragment(){
     private fun setupViewMode() {
         var layoutManager: LinearLayoutManager? = null
         if (!listViewType) {
-            viewButton.setImageResource(R.drawable.ic_grid_24dp)
+            viewButton.setImageResource(R.drawable.ic_list_view)
             heartResource = R.drawable.heart_shape_grey
             layoutManager = GridLayoutManager(requireContext(),3)
         } else {
-            viewButton.setImageResource(R.drawable.ic_list_view)
+            viewButton.setImageResource(R.drawable.ic_grid_24dp)
             heartResource = R.drawable.heart_shape_outlined
             layoutManager = LinearLayoutManager(requireContext())
-
-
         }
 
         recyclerView = binding.recycler
         recyclerView.layoutManager = layoutManager
-        // Create the adapter instance
-        movieRecyclerAdapter = MovieRecyclerAdapter()
         // Set the adapter to the RecyclerView
         recyclerView.adapter = movieRecyclerAdapter
-
     }
-/*
 
-
-    private fun listenGridView() {
-        viewModel.apply {
-            liveDataMovieList.observe(viewLifecycleOwner) {
-                gridMovieAdapter.updateMovieList(it.results)
-            }
-            liveDataViewType.observe(viewLifecycleOwner) {
-                listViewType = it
-                setupViewMode()
-            }
-            liveDataLoading.observe(viewLifecycleOwner) {
-                loadingView.visibility = if (it) View.VISIBLE else View.GONE
-                gridView.visibility = if (it) View.GONE else View.VISIBLE
-            }
-            liveDataLikedMovieIds.observe(viewLifecycleOwner) {
-                gridMovieAdapter.setLikedMovieIds(it)
-            }
-
-            gridMovieAdapter.setOnClickListener(object : GridMovieAdapter.OnClickListener{
-                override fun onMovieClick(position: Int, movieView : View,  movieList: ArrayList<MovieDetail>) {
-                    movieClicked(position, movieView, movieList)
-                }
-
-                override fun onHeartButtonClick(
-                    adapterPosition: Int,
-                    movieView: View,
-                    results: ArrayList<MovieDetail>,
-                    heartButton: ImageButton
-                ) {
-                    heartButtonClicked(adapterPosition, movieView, results, heartButton)
-
-
-                }
-
-            })
-            gridMovieAdapter.setOnBottomReachedListener(object : GridMovieAdapter.OnBottomReachedListener{
-                override fun onBottomReached(position: Int) {
-                    Log.e("initview", "you reached end")
-                    pageCount++
-                    viewModel.setPageNumber(pageCount)
-                    viewModel.displayGroup(pageCount)
-
-
-                }
-            })
-        }
-    }*/
+    override fun onStart(){
+        super.onStart()
+        viewModel.updateLikedMovieIds()
+        listenViewModel()
+    }
     private fun listenViewModel() {
         viewModel.apply {
             liveDataMovieList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.addToList(it.results)
+                movieRecyclerAdapter.addToList(it)
             }
             liveDataGenreList.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.sendGenreList(it)
@@ -171,7 +120,6 @@ class MoviesFragment : Fragment(){
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
                 recyclerView.visibility = if (it) View.GONE else View.VISIBLE
             }
-
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
             }
@@ -182,19 +130,18 @@ class MoviesFragment : Fragment(){
                     viewModel.setPageNumber(pageCount)
                     viewModel.displayGroup(pageCount)
 
-
                 }
             })
 
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
-                override fun onMovieClick(position: Int, movieView : View,  movieList: ArrayList<MovieDetail>) {
+                override fun onMovieClick(position: Int, movieView : View,  movieList: MutableList<MovieDetail>) {
                     movieClicked(position, movieView, movieList)
                 }
 
                 override fun onHeartButtonClick(
                     adapterPosition: Int,
                     movieView: View,
-                    results: ArrayList<MovieDetail>,
+                    results: MutableList<MovieDetail>,
                     heartButton : ImageButton
                 ) {
                     heartButtonClicked(adapterPosition, movieView, results, heartButton)
@@ -207,19 +154,12 @@ class MoviesFragment : Fragment(){
         }
     }
 
-
-
-
-
-
-    private fun movieClicked(position: Int, movieView:View, movieList: ArrayList<MovieDetail>) {
+    private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
-        val heart_tag = clickedMovie.heart_tag
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_ID, id)
             putInt(BundleKeys.position, position)
-            putString(BundleKeys.HEART_TAG, heart_tag)
         }
 
         val destinationFragment = DetailMovieFragment()
@@ -231,7 +171,7 @@ class MoviesFragment : Fragment(){
     private fun heartButtonClicked(
         position: Int,
         itemView: View,
-        results: ArrayList<MovieDetail>,
+        results: MutableList<MovieDetail>,
         heartButton: ImageButton
     ){
 
@@ -258,6 +198,7 @@ class MoviesFragment : Fragment(){
                 withContext(Dispatchers.IO) {
                     movieDao.insert(newMovie)
                     viewModel.updateLikedMovieIds()
+
                 }
 
             } catch (e: Exception) {
