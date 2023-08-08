@@ -30,6 +30,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var onBottomReachedListener: OnBottomReachedListener
     private lateinit var listener: OnClickListener
+    private var viewMovieType: Boolean = true
 
     interface OnClickListener {
         fun onMovieClick(position: Int,  movieView: View, movieList: ArrayList<MovieDetail> )
@@ -62,6 +63,9 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
             notifyDataSetChanged()
         }
     }
+    fun updateViewType(viewType: Boolean){
+        viewMovieType = viewType
+    }
 
     fun addToList(item: ArrayList<MovieDetail>) {
         handler.post {
@@ -78,14 +82,16 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         notifyDataSetChanged()
     }
 
-    inner class MovieViewHolder(itemView: View,  listener: OnClickListener) : ViewHolder(itemView) {
-        val movie: TextView = itemView.findViewById(R.id.movie)
-        val photo: ImageView = itemView.findViewById(R.id.photo)
-        val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
-        val heartButton: ImageButton = itemView.findViewById(R.id.heart_in_detail)
-        val date: TextView = itemView.findViewById(R.id.release_date)
+    inner class MovieViewHolder(itemView: View, listener: OnClickListener, viewMovieType: Boolean) : ViewHolder(itemView) {
+
+
+        private var  heartButton: ImageButton
 
         init {
+
+            if(viewMovieType) heartButton = itemView.findViewById(R.id.heart_in_detail)
+            else heartButton = itemView.findViewById(R.id.heart_in_grid)
+
             itemView.setOnClickListener {
                 listener.onMovieClick(adapterPosition,itemView, movieList)
             }
@@ -96,10 +102,27 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
 
         }
         fun bind(detail: MovieDetail) {
-            Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
-            movie.text = detail.title
-            movie_desc.text = detail.overview
-            date.text = detail.release_date.subSequence(0,4)
+            if(viewMovieType) {
+                val movie: TextView = itemView.findViewById(R.id.movie)
+                val photo: ImageView = itemView.findViewById(R.id.photo)
+                val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
+
+                val date: TextView = itemView.findViewById(R.id.release_date)
+
+                Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
+                movie.text = detail.title
+                movie_desc.text = detail.overview
+                date.text = detail.release_date.subSequence(0, 4)
+            }
+            else {
+
+                val movie: TextView = itemView.findViewById(R.id.title_grid)
+                val photo: ImageView = itemView.findViewById(R.id.photoGrid)
+
+                Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
+                movie.text = detail.title
+            }
+
 
             if (likedMovieIds.contains(detail.id)) {
                 detail.heart_tag = "filled"
@@ -118,8 +141,14 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val itemView = inflater.inflate(R.layout.item_movie, parent, false)
-        return MovieViewHolder(itemView, listener)
+
+        return if(viewMovieType) {
+            val itemView = inflater.inflate(R.layout.item_movie, parent, false)
+            MovieViewHolder(itemView, listener, viewMovieType)
+        } else{
+            val itemView = inflater.inflate(R.layout.item_movie_grid, parent, false)
+            MovieViewHolder(itemView, listener, viewMovieType)
+        }
     }
 
     override fun getItemCount() = movieList.size
@@ -130,21 +159,23 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         if (position == movieList.size -1 ) {
             onBottomReachedListener.onBottomReached(position)
         }
-        val genreNamesOfTheMovies = arrayListOf<String>()
-        if (genreMapper != emptyMap<Int, String>()) {
 
-            for (genreId in movieList[position].genre_ids) {
+        if (viewMovieType) {
+            val genreNamesOfTheMovies = arrayListOf<String>()
+            if (genreMapper != emptyMap<Int, String>()) {
 
-                val genreName = genreMapper[genreId]
-                if (genreName != null) {
-                    genreNamesOfTheMovies.add(genreName)
+                for (genreId in movieList[position].genre_ids) {
+
+                    val genreName = genreMapper[genreId]
+                    if (genreName != null) {
+                        genreNamesOfTheMovies.add(genreName)
+                    }
                 }
-            }
+            } else genreNamesOfTheMovies.addAll(movieList[position].genres.map { it.genre_name })
+
+
+            decideAddingGenreView(holder, genreNamesOfTheMovies)
         }
-        else genreNamesOfTheMovies.addAll(movieList[position].genres.map { it.genre_name })
-
-
-        decideAddingGenreView(holder, genreNamesOfTheMovies)
 
     }
     fun sendGenreList(it: HashMap<Int, String>) {

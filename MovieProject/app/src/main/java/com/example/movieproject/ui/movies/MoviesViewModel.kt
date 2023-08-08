@@ -2,6 +2,7 @@ package com.example.movieproject.ui.movies
 
 import android.app.Application
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -32,6 +33,9 @@ class MoviesViewModel @Inject constructor(
 
     private val _liveDataMovieList = MutableLiveData<MovieList>()
     val liveDataMovieList: LiveData<MovieList> = _liveDataMovieList
+
+    private val _liveDataViewType = MutableLiveData<Boolean>()
+    val liveDataViewType: LiveData<Boolean> = _liveDataViewType
 
     val liveDataLoading = MutableLiveData<Boolean>()
 
@@ -84,6 +88,7 @@ class MoviesViewModel @Inject constructor(
             }
             _liveDataMovieList.postValue(movieList as MovieList?)
             liveDataLoading.postValue(false)
+            _liveDataViewType.postValue(true)
         }
     }
 

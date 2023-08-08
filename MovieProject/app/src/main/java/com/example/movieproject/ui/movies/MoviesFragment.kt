@@ -1,6 +1,5 @@
 package com.example.movieproject.ui.movies
 
-import GridMovieAdapter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -18,6 +17,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentMoviesBinding
@@ -34,19 +35,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
-class MoviesFragment : Fragment(R.layout.fragment_movies){
+class MoviesFragment : Fragment(){
 
     private lateinit var movieDao: MovieDao
     private lateinit var binding: FragmentMoviesBinding
     private var pageCount = 1
     private val viewModel: MoviesViewModel by viewModels(ownerProducer = { this })
     private lateinit var movieRecyclerAdapter: MovieRecyclerAdapter
-    private lateinit var gridMovieAdapter: GridMovieAdapter
     private lateinit var loadingView: ProgressBar
     private lateinit var recyclerView: RecyclerView
-    private lateinit var gridView: GridView
     private var heartResource: Int = R.drawable.heart_shape_grey
     private var heartDrawable: Drawable = ColorDrawable(Color.TRANSPARENT)
+    private lateinit var viewButton: ImageButton
+    private var listViewType = true
 
 
 
@@ -59,39 +60,54 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
         toolbarTitle.text = "Popular Movies"
         Log.d("view", "created")
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
-
         initView(view)
-        listenGridView()
-        //listenViewModel()
-    }
 
+        super.onViewCreated(view, savedInstanceState)
+    }
 
     private fun initView(view: View){
         view.apply {
-
-            //val layoutManager = LinearLayoutManager(requireContext())
-            /*
-            recyclerView = findViewById(R.id.recycler)
-            recyclerView.layoutManager = layoutManager
-            // Create the adapter instance
-            movieRecyclerAdapter = MovieRecyclerAdapter()
-            // Set the adapter to the RecyclerView
-            recyclerView.adapter = movieRecyclerAdapter*/
-            gridView = findViewById(R.id.gridView)
-            gridMovieAdapter = GridMovieAdapter(requireContext())
-            heartResource = R.drawable.heart_shape_grey
-            // Set the adapter for the GridView
-            gridView.adapter = gridMovieAdapter
+            viewButton = findViewById(R.id.gridOrList)
             loadingView = findViewById(R.id.loading)
+            viewButton.setOnClickListener {
+                listViewType = !listViewType
+                setupViewMode()
+                listenViewModel()
+            }
+
+            setupViewMode()
+            listenViewModel()
+        }
+    }
+
+    private fun setupViewMode() {
+        var layoutManager: LinearLayoutManager? = null
+        if (!listViewType) {
+            viewButton.setImageResource(R.drawable.ic_grid_24dp)
+            heartResource = R.drawable.heart_shape_grey
+            layoutManager = GridLayoutManager(requireContext(),3)
+        } else {
+            viewButton.setImageResource(R.drawable.ic_list_view)
+            heartResource = R.drawable.heart_shape_outlined
+            layoutManager = LinearLayoutManager(requireContext())
+
+
         }
 
+        recyclerView = binding.recycler
+        recyclerView.layoutManager = layoutManager
+        // Create the adapter instance
+        movieRecyclerAdapter = MovieRecyclerAdapter()
+        // Set the adapter to the RecyclerView
+        recyclerView.adapter = movieRecyclerAdapter
+
     }
+/*
 
 
     private fun listenGridView() {
@@ -99,13 +115,18 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
             liveDataMovieList.observe(viewLifecycleOwner) {
                 gridMovieAdapter.updateMovieList(it.results)
             }
+            liveDataViewType.observe(viewLifecycleOwner) {
+                listViewType = it
+                setupViewMode()
+            }
             liveDataLoading.observe(viewLifecycleOwner) {
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
                 gridView.visibility = if (it) View.GONE else View.VISIBLE
             }
-            viewModel.liveDataLikedMovieIds.observe(viewLifecycleOwner) {
+            liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 gridMovieAdapter.setLikedMovieIds(it)
             }
+
             gridMovieAdapter.setOnClickListener(object : GridMovieAdapter.OnClickListener{
                 override fun onMovieClick(position: Int, movieView : View,  movieList: ArrayList<MovieDetail>) {
                     movieClicked(position, movieView, movieList)
@@ -134,7 +155,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
                 }
             })
         }
-    }
+    }*/
     private fun listenViewModel() {
         viewModel.apply {
             liveDataMovieList.observe(viewLifecycleOwner) {
@@ -143,11 +164,15 @@ class MoviesFragment : Fragment(R.layout.fragment_movies){
             liveDataGenreList.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.sendGenreList(it)
             }
+            liveDataViewType.observe(viewLifecycleOwner) {
+                movieRecyclerAdapter.updateViewType(listViewType)
+            }
             liveDataLoading.observe(viewLifecycleOwner) {
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
                 recyclerView.visibility = if (it) View.GONE else View.VISIBLE
             }
-            viewModel.liveDataLikedMovieIds.observe(viewLifecycleOwner) {
+
+            liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
             }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
