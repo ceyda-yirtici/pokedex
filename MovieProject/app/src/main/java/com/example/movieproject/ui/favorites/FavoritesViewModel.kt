@@ -30,8 +30,8 @@ class FavoritesViewModel @Inject constructor(
 
     val liveDataLoading = MutableLiveData<Boolean>()
 
-    private val _liveDataFavoritesList = MutableLiveData<ArrayList<MovieDetail>>()
-    val liveDataFavoritesList: LiveData<ArrayList<MovieDetail>> = _liveDataFavoritesList
+    private val _liveDataFavoritesList = MutableLiveData<MutableList<MovieDetail>>()
+    val liveDataFavoritesList: LiveData<MutableList<MovieDetail>> = _liveDataFavoritesList
 
     var _databaseList = MutableStateFlow<HashMap<Int, Boolean>>(HashMap())
     var databaseList: StateFlow<HashMap<Int, Boolean>> = _databaseList
@@ -48,13 +48,17 @@ class FavoritesViewModel @Inject constructor(
         return movieDao
     }
 
-    private fun callMovieRepos(movies: ArrayList<Int>) {
+    private fun callMovieRepos(movies: MutableList<Int>) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val movieList = movies.map { movieId ->
                     movieService.getMovie(movieId, BundleKeys.API_KEY)
                 }
-                _liveDataFavoritesList.postValue(movieList as ArrayList<MovieDetail>?)
+                val currentList = _liveDataFavoritesList.value ?: emptyList()
+                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
+                    addAll(movieList)
+                }
+                _liveDataFavoritesList.postValue(updatedList)
             } catch (exception: Exception) {
                 _liveDataFavoritesList.postValue(arrayListOf())
             }
@@ -62,49 +66,62 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
-    fun refresh(){
-        createList()
+
+    fun setFavoritesList() {
+        val favoritesList = liveDataFavoritesList.value ?: mutableListOf()
+        val databaseKeys = databaseList.value.keys
+
+        val updatedFavoritesList = favoritesList.filter { movie ->
+            databaseKeys.contains(movie.id)
+        }.toMutableList()
+
+        _liveDataFavoritesList.value = updatedFavoritesList
     }
 
-    private fun createList() {
+
+     fun createList() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val hashMap = HashMap<Int, Boolean>()
                 for (id in movieDao.getAllByIds()) {
-                    Log.d("ids", id.toString())
-                    hashMap[id] = false
+                    hashMap[id] = _databaseList.value[id] == true
                 }
-                Log.d("ids", hashMap.toString())
                 _databaseList.value = hashMap
                 Log.d("ids", databaseList.value.toString())
 
             }
-            databaseList.collect { hashMap ->
-                displayGroup(hashMap.toMutableMap())
-            }
+            setFavoritesList()
+            displayGroup()
+
+
         }
     }
-    fun displayGroup(toMutableMap: MutableMap<Int, Boolean>) {
-        val nextTenKeys = setList(toMutableMap)
+    fun displayGroup() {
+            val nextTenKeys = setList()
 
-        if (nextTenKeys.isNotEmpty())
-            callMovieRepos(nextTenKeys)
-        }
+            if (nextTenKeys.isNotEmpty()) {
+                callMovieRepos(nextTenKeys)
+            }
+
     }
 
-    private fun setList(paginationHashMap: MutableMap<Int, Boolean>): ArrayList<Int> {
-        val nextTenKeys = ArrayList<Int>()
-        val filteredValues = paginationHashMap.filterValues { !it }.entries.take(10)
-        if (filteredValues.isNotEmpty()) {
-            filteredValues.forEach { entry ->
-                nextTenKeys.add(entry.key)
-                paginationHashMap[entry.key] = true
-            }
+    private fun setList(): ArrayList<Int> {
+
+        val nextTenKeys = ArrayList<Int>(arrayListOf())
+        val filteredValues = databaseList.value.filterValues { !it }.entries.take(10)
+        filteredValues.forEach { entry ->
+            nextTenKeys.add(entry.key)
+            databaseList.value[entry.key] = true
         }
+
+
 
         Log.d("nextTenKeys", nextTenKeys.toString())
         return nextTenKeys
     }
+}
+
+
 
 
 

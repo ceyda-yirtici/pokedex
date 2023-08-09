@@ -1,18 +1,13 @@
 package com.example.movieproject.ui.movies
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -108,7 +103,7 @@ class MoviesFragment : Fragment(){
     private fun listenViewModel() {
         viewModel.apply {
             liveDataMovieList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.addToList(it)
+                movieRecyclerAdapter.updateMovieList(it)
             }
             liveDataGenreList.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.sendGenreList(it)

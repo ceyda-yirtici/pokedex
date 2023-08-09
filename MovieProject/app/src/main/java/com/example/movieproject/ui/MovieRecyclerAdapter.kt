@@ -51,7 +51,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     fun setOnBottomReachedListener(onBottomReachedListener: OnBottomReachedListener) {
         this.onBottomReachedListener = onBottomReachedListener
     }
-    fun updateList(item: ArrayList<MovieDetail>) {
+    fun updateList(item: MutableList<MovieDetail>) {
         handler.post {
             item.forEach { movieDetail ->
                 movieDetail.heart_tag = "filled"
@@ -65,7 +65,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         viewMovieType = viewType
     }
 
-    fun addToList(item: MutableList<MovieDetail>) {
+    fun updateMovieList(item: MutableList<MovieDetail>) {
         handler.post {
             item.let {
                 movieList = updateLikedStatusInMovieList(item)
@@ -128,8 +128,6 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
                 movie.text = detail.title
             }
-
-
 
             if (detail.heart_tag == "filled") {
                 // Movie is liked, update the UI accordingly

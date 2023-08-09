@@ -63,7 +63,8 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
     override fun onStart(){
         super.onStart()
-        viewModel.refresh()
+        viewModel.createList()
+
     }
     private fun initView(view: View) {
         view.apply {
@@ -93,12 +94,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
-                    viewModelScope.launch {
-                        databaseList.collect { hashMap ->
-                            viewModel.displayGroup(hashMap.toMutableMap())
-                        }
-                    }
-
+                    viewModel.displayGroup()
                 }
             })
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
@@ -165,7 +161,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 // Execute the database operation on the IO dispatcher
                 withContext(Dispatchers.IO) {
                     movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                    viewModel.refresh()
                 }
 
             } catch (e: Exception) {
@@ -183,7 +178,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 // Execute the database operation on the IO dispatcher
                 withContext(Dispatchers.IO) {
                     movieDao.insert(newMovie)
-                    viewModel.refresh()
                 }
 
             } catch (e: Exception) {

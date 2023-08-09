@@ -66,13 +66,10 @@ class MoviesViewModel @Inject constructor(
 
 
 
-    private fun getLikedMovieIds(): List<Int> {
-        // Query your Room database to get a list of liked movie IDs
-        return movieDao.getAllByIds()
-    }
+
     fun updateLikedMovieIds() {
         viewModelScope.launch(Dispatchers.IO) {
-            _liveDataLikedMovieIds.postValue(getLikedMovieIds() as List<Int>?)
+            _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
         }
     }
 
