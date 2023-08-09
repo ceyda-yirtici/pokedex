@@ -49,10 +49,14 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         movieId = requireArguments().getInt(BundleKeys.REQUEST_ID)
+        initView(view)
+        listenViewModel()
+    }
+
+    private fun initView(view:View){
         view.apply {
             loadingView = binding.loading
         }
-        listenViewModel()
     }
 
     private fun listenViewModel() {
@@ -69,14 +73,12 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             liveDataLoading.observe(viewLifecycleOwner) {
                 binding.detailPhoto.visibility = if (it) View.GONE else View.VISIBLE
                 binding.releaseDate.visibility = if (it) View.GONE else View.VISIBLE
-
                 binding.movieDescription.visibility = if (it) View.GONE else View.VISIBLE
-
                 binding.title.visibility = if (it) View.GONE else View.VISIBLE
-
                 binding.heartInDetail.visibility = if (it) View.GONE else View.VISIBLE
+                binding.star.visibility = if (it) View.GONE else View.VISIBLE
+                binding.voteText.visibility = if (it) View.GONE else View.VISIBLE
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
-
             }
             displayMovie(movieId)
         }
@@ -108,6 +110,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         binding.title.text = it.title
         binding.movieDescription.text = it.overview
         binding.releaseDate.text = it.release_date.subSequence(0,4)
+        binding.voteText.text = it.vote.toString().subSequence(0,3)
 
         viewLifecycleOwner.lifecycleScope.launch {
             val count = withContext(Dispatchers.IO) {

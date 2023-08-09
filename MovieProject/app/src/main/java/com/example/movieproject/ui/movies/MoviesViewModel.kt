@@ -32,7 +32,7 @@ class MoviesViewModel @Inject constructor(
 
     private val movieDao: MovieDao
 
-    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>()
+    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
     val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
     private val _liveDataViewType = MutableLiveData<Boolean>()
@@ -65,7 +65,9 @@ class MoviesViewModel @Inject constructor(
     }
 
 
-
+    fun setLiveDataMovieList(list: MutableList<MovieDetail>){
+        _liveDataMovieList.value = list
+    }
 
     fun updateLikedMovieIds() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -96,6 +98,34 @@ class MoviesViewModel @Inject constructor(
         }
     }
 
+    fun reloadMovieList(userQuery: String, pageCount:Int) {
+        if (userQuery.isNotEmpty()) {
+            searchMovies(userQuery, pageCount)
+        } else {
+            displayGroup(pageCount)
+        }
+    }
+
+    private fun callSearchRepos(query:String, page: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val newMovieList = movieService.getSearchList(BundleKeys.API_KEY, page, query)
+                val currentList = _liveDataMovieList.value ?: emptyList()
+                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
+                    addAll(newMovieList.results)
+                }
+
+                _liveDataMovieList.postValue(updatedList)
+                liveDataLoading.postValue(false)
+                _liveDataViewType.postValue(true)
+            } catch (exception: Exception) {
+                // Handle exception
+            }
+        }
+    }
+    fun searchMovies(query:String, page: Int){
+        callSearchRepos(query, page)
+    }
     private fun callGenreRepos() {
         viewModelScope.launch(Dispatchers.IO) {
            try {

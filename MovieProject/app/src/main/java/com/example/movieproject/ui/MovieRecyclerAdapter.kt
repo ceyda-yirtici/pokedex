@@ -114,11 +114,15 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
                 heartResource= R.drawable.heart_shape_outlined
                 val date: TextView = itemView.findViewById(R.id.release_date)
+                val vote: TextView = itemView.findViewById(R.id.vote_text)
 
                 Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
                 movie.text = detail.title
                 movie_desc.text = detail.overview
-                date.text = detail.release_date.subSequence(0, 4)
+                if (detail.release_date.length > 0)
+                    date.text = detail.release_date.subSequence(0, 4)
+                else date.text = "invalid"
+                vote.text = detail.vote.toString().subSequence(0,3)
             }
             else {
                 heartResource= R.drawable.heart_shape_grey
@@ -154,28 +158,36 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     override fun getItemCount() = movieList.size
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
-        holder.bind(movieList[position])
+        try {
+            holder.bind(movieList[position])
 
-        if (position == movieList.size -1 ) {
-            onBottomReachedListener.onBottomReached(position)
-        }
+            if (movieList.isNotEmpty() && position == movieList.size - 1) {
+                onBottomReachedListener.onBottomReached(position)
+            }
 
-        if (viewMovieType) {
-            val genreNamesOfTheMovies = arrayListOf<String>()
-            if (genreMapper != emptyMap<Int, String>()) {
+            if (viewMovieType) {
+                val genreNamesOfTheMovies = arrayListOf<String>()
+                if (genreMapper != emptyMap<Int, String>()) {
 
-                for (genreId in movieList[position].genre_ids) {
+                    for (genreId in movieList[position].genre_ids) {
 
-                    val genreName = genreMapper[genreId]
-                    if (genreName != null) {
-                        genreNamesOfTheMovies.add(genreName)
+                        val genreName = genreMapper[genreId]
+                        if (genreName != null) {
+                            genreNamesOfTheMovies.add(genreName)
+                        }
                     }
-                }
-            } else genreNamesOfTheMovies.addAll(movieList[position].genres.map { it.genre_name })
+                } else genreNamesOfTheMovies.addAll(movieList[position].genres.map { it.genre_name })
 
 
-            decideAddingGenreView(holder, genreNamesOfTheMovies)
+                decideAddingGenreView(holder, genreNamesOfTheMovies)
+            }
         }
+        catch (e: NullPointerException) {
+            // Handle the exception
+            Log.e("NullPointerException", "Caught: ${e.message}")
+            // You can implement your own error handling here
+        }
+
 
     }
     fun sendGenreList(it: HashMap<Int, String>) {

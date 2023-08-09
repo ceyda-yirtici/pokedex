@@ -11,5 +11,6 @@ data class MovieDetail (
     @SerializedName("genres") val genres: List<MovieGenre>,
     @SerializedName("id") val id:Int,
     @SerializedName("backdrop_path") val backdrop_path :String,
+    @SerializedName("vote_average") val vote: Double,
     var heart_tag: String,
         )

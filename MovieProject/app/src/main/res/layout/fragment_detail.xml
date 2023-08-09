@@ -7,13 +7,15 @@
 
     <ImageView
         android:id="@+id/detail_photo"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="221dp"
         android:contentDescription="@string/moviephoto"
         android:foreground="@drawable/gradient_foreground"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf = "parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+
 
     <ProgressBar
         android:id="@+id/loading"
@@ -59,6 +61,35 @@
         app:layout_constraintStart_toStartOf="parent"/>
 
 
+    <ImageView
+        android:id="@+id/star"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:contentDescription="star"
+        android:foreground="@drawable/star_outlined"
+        android:gravity="center_horizontal"
+        app:layout_constraintStart_toEndOf="@id/release_date"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        android:layout_marginBottom="6dp"/>
+
+
+    <TextView
+        android:id="@+id/vote_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:textColor="@color/material_color_blue_grey_500"
+        app:layout_constraintStart_toEndOf="@id/star"
+        android:layout_marginStart="3dp"
+        android:layout_marginTop="10dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="2dp"/>
+
 
     <TextView
         android:id="@+id/release_date"
@@ -73,6 +104,7 @@
         android:visibility="gone"
         android:layout_marginEnd="10dp"
         android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toStartOf="@id/star"
         app:layout_constraintStart_toStartOf="parent"
         android:background="@drawable/rounded_corners"
         app:layout_constraintTop_toBottomOf="@+id/title" />

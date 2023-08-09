@@ -52,7 +52,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
-        toolbarTitle.text = "Favorites Movies"
+        toolbarTitle.text = "Favorite Movies"
 
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()

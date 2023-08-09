@@ -1,5 +1,6 @@
 package com.example.movieproject.ui.movies
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -41,7 +43,10 @@ class MoviesFragment : Fragment(){
     private lateinit var recyclerView: RecyclerView
     private var heartResource: Int = R.drawable.heart_shape_grey
     private lateinit var viewButton: ImageButton
+    private lateinit var searchView: SearchView
     private var listViewType = true
+    private lateinit var toolbarTitle : TextView
+    private var userQuery = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,7 +58,7 @@ class MoviesFragment : Fragment(){
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
+        toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
         toolbarTitle.text = "Popular Movies"
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
@@ -66,30 +71,44 @@ class MoviesFragment : Fragment(){
     private fun initView(view: View){
         view.apply {
             viewButton = findViewById(R.id.gridOrList)
+            searchView = findViewById(R.id.searchView)
             loadingView = findViewById(R.id.loading)
+
             viewButton.setOnClickListener {
                 listViewType = !listViewType
                 setupViewMode()
                 listenViewModel()
             }
+
             setupViewMode()
             listenViewModel()
         }
     }
 
+
+
     private fun setupViewMode() {
+
+        recyclerView = binding.recycler
         var layoutManager: LinearLayoutManager? = null
         if (!listViewType) {
+            searchView.visibility = View.GONE
             viewButton.setImageResource(R.drawable.ic_list_view)
             heartResource = R.drawable.heart_shape_grey
-            layoutManager = GridLayoutManager(requireContext(),3)
+            val orientation = resources.configuration.orientation
+            var spanCount = 3
+            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                // Device is in landscape mode
+                spanCount = 6
+            }
+            layoutManager = GridLayoutManager(requireContext(), spanCount)
         } else {
+            searchView.visibility = View.VISIBLE
             viewButton.setImageResource(R.drawable.ic_grid_24dp)
             heartResource = R.drawable.heart_shape_outlined
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        recyclerView = binding.recycler
         recyclerView.layoutManager = layoutManager
         // Set the adapter to the RecyclerView
         recyclerView.adapter = movieRecyclerAdapter
@@ -118,16 +137,18 @@ class MoviesFragment : Fragment(){
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
             }
+
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     Log.e("initview", "you reached end")
                     pageCount++
                     viewModel.setPageNumber(pageCount)
-                    viewModel.displayGroup(pageCount)
+                    if(toolbarTitle.visibility == View.VISIBLE)
+                        viewModel.displayGroup(pageCount)
+                    else viewModel.searchMovies(userQuery, pageCount)
 
                 }
             })
-
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
                 override fun onMovieClick(position: Int, movieView : View,  movieList: MutableList<MovieDetail>) {
                     movieClicked(position, movieView, movieList)
@@ -140,13 +161,55 @@ class MoviesFragment : Fragment(){
                     heartButton : ImageButton
                 ) {
                     heartButtonClicked(adapterPosition, movieView, results, heartButton)
-
-
                 }
 
             })
+            searchView.setOnSearchClickListener {
+                toolbarTitle.visibility = View.GONE
+                viewButton.visibility = View.GONE
+                setUpListComponents()
+            }
+            searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener  {
+
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    if (query != null) {
+                        viewModel.searchMovies(query, pageCount)
+                        userQuery =  query
+                        setUpListComponents()
+                    }
+                    return false
+                }
+
+
+                override fun onQueryTextChange(query: String?): Boolean {
+                    if (query != null && query != "") {
+                        viewModel.searchMovies(query, pageCount)
+                        userQuery =  query
+
+                        toolbarTitle.visibility = View.GONE
+                        viewButton.visibility = View.GONE
+                        setUpListComponents()
+                    }
+                    return false
+                }
+            })
+            searchView.setOnCloseListener {
+                toolbarTitle.visibility = View.VISIBLE
+                viewButton.visibility = View.VISIBLE
+                setUpListComponents()
+                viewModel.displayGroup(pageCount)
+
+                false
+            }
 
         }
+    }
+
+    private fun setUpListComponents() {
+        listViewType = true
+        viewModel.setLiveDataMovieList(mutableListOf())
+        pageCount = 1
+        viewModel.setPageNumber(pageCount)
     }
 
     private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
@@ -157,10 +220,10 @@ class MoviesFragment : Fragment(){
             putInt(BundleKeys.position, position)
         }
 
+        viewModel.setLiveDataMovieList(movieList)
         val destinationFragment = DetailMovieFragment()
         destinationFragment.arguments = bundle
         findNavController().navigate(R.id.action_detail, bundle) // R.id.action_detail
-
     }
 
     private fun heartButtonClicked(
@@ -192,7 +255,7 @@ class MoviesFragment : Fragment(){
                 // Execute the database operation on the IO dispatcher
                 withContext(Dispatchers.IO) {
                     movieDao.insert(newMovie)
-                    viewModel.updateLikedMovieIds()
+
 
                 }
 
@@ -209,7 +272,6 @@ class MoviesFragment : Fragment(){
                 // Execute the database operation on the IO dispatcher
                 withContext(Dispatchers.IO) {
                     movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                    viewModel.updateLikedMovieIds()
                 }
 
             } catch (e: Exception) {
@@ -223,3 +285,4 @@ class MoviesFragment : Fragment(){
 
 
 }
+

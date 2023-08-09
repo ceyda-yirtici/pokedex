@@ -13,6 +13,10 @@ interface MovieService {
     @GET("movie/popular")
     suspend fun getMovieList(@Query("api_key") api_key:String, @Query("page") page:Int) : MovieList
 
+
+    @GET("search/movie")
+    suspend fun getSearchList(@Query("api_key") api_key:String, @Query("page") page:Int, @Query("query") query: String) : MovieList
+
     @GET("genre/movie/list?language=en")
     suspend fun getMovieGenres(@Query("api_key") api_key:String) : GenreList
 
