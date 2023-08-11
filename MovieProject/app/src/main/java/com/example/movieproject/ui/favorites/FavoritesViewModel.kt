@@ -10,6 +10,7 @@ import com.example.movieproject.model.GenreList
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
+import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +40,6 @@ class FavoritesViewModel @Inject constructor(
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
-
         createList()
 
 

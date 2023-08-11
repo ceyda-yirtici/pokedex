@@ -8,5 +8,6 @@ object BundleKeys {
     const val baseImageUrl = "https://image.tmdb.org/t/p/w500"
     const val baseImageUrlForOriginalSize = "https://image.tmdb.org/t/p/original"
     const val REQUEST_ID = "id"
+    const val REQUEST_DISCOVER = ""
 
 }

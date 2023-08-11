@@ -2,19 +2,13 @@ package com.example.movieproject.ui.movies
 
 import android.app.Application
 import android.util.Log
-import android.view.View
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.movieproject.MovieApplication
 import com.example.movieproject.model.GenreList
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.model.MovieGenre
-import com.example.movieproject.model.MovieList
-import com.example.movieproject.room.AppDatabase
 import com.example.movieproject.room.AppDatabaseProvider
-import com.example.movieproject.room.Movie
 import com.example.movieproject.service.MovieService
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
@@ -59,9 +53,6 @@ class MoviesViewModel @Inject constructor(
             callMovieRepos(it)
         }
         callGenreRepos()
-    }
-    fun getMovieDao(): MovieDao {
-        return movieDao
     }
 
 

@@ -28,11 +28,25 @@
 
     <fragment
         android:id="@+id/navigation_watchlist"
-        android:name="com.example.movieproject.ui.watchlist.WatchlistFragment"
-        tools:layout="@layout/fragment_watchlist" />
+        android:name="com.example.movieproject.ui.discover.DiscoverFragment"
+        tools:layout="@layout/fragment_discover" >
+    <action
+        android:id="@+id/action_discovered"
+        app:destination="@id/discoveredFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/detailMovieFragment"
         android:name="com.example.movieproject.ui.moviedetail.DetailMovieFragment"
         android:label="DetailMovieFragment"
         tools:layout="@layout/fragment_detail"/>
+    <fragment
+        android:id="@+id/discoveredFragment"
+        android:name="com.example.movieproject.ui.favorites.DiscoveredFragment"
+        android:label="DiscoveredFragment" >
+
+    <action
+        android:id="@+id/action_detail"
+        app:destination="@id/detailMovieFragment" />
+    </fragment>
 </navigation>

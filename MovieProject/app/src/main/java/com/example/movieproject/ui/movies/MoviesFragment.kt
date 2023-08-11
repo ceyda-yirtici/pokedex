@@ -20,10 +20,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentMoviesBinding
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.utils.BundleKeys
 import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,6 +47,8 @@ class MoviesFragment : Fragment(){
     private var listViewType = true
     private lateinit var toolbarTitle : TextView
     private var userQuery = ""
+    private lateinit var favoritesManager: FavoritesManager
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,6 +64,7 @@ class MoviesFragment : Fragment(){
         toolbarTitle.text = "Popular Movies"
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
+        favoritesManager = FavoritesManager.getInstance(movieDao)
         initView(view)
 
         super.onViewCreated(view, savedInstanceState)
@@ -238,49 +241,30 @@ class MoviesFragment : Fragment(){
         if ( clickedMovie.heart_tag == "filled") {
             heartButton.setImageResource(heartResource)
             clickedMovie.heart_tag = "outline"
-            removeMovieFromDB(clickedMovie, heartButton)
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    favoritesManager.removeMovieFromDB(
+                        clickedMovie,
+                        heartButton
+                    )
+                }
+            }
         } else {
             heartButton.setImageResource(R.drawable.heart_shape_red)
             clickedMovie.heart_tag = "filled"
-            addMovieToDB(clickedMovie, heartButton)
-        }
-
-
-    }
-    private fun addMovieToDB(clickedMovie: MovieDetail, heartButton: ImageButton ){
-
-        val newMovie = Movie(movie_id = clickedMovie.id)
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
+            lifecycleScope.launch {
                 withContext(Dispatchers.IO) {
-                    movieDao.insert(newMovie)
-
-
+                    favoritesManager.addMovieToDB(
+                        clickedMovie,
+                        heartButton
+                    )
                 }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(heartResource)
-                clickedMovie.heart_tag = "outline"
-            }
-        }
-    }
-    private fun removeMovieFromDB(clickedMovie: MovieDetail, heartButton: ImageButton){
-
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_red)
-                clickedMovie.heart_tag  = "filled"
             }
         }
 
+
     }
+
 
 
 

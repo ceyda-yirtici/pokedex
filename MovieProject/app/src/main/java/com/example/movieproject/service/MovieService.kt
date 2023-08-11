@@ -23,5 +23,8 @@ interface MovieService {
     @GET("movie/{movie_id}")
     suspend fun getMovie(@Path("movie_id") id: Int, @Query("api_key") api_key:String) : MovieDetail
 
+    @GET("discover/movie")
+    suspend fun discover(@Query("api_key") api_key:String, @Query("page") page:Int, @Query("with_genres") with_genres:String) : MovieList
+
 }
 

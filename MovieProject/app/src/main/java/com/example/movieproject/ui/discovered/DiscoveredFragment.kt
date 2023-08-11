@@ -15,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
+import com.example.movieproject.databinding.DiscoveredLayoutBinding
 import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
@@ -22,6 +23,7 @@ import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.ui.MovieRecyclerAdapter
+import com.example.movieproject.ui.discover.DiscoveredViewModel
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,31 +32,32 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
-class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
+class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
     private lateinit var movieDao: MovieDao
-    private lateinit var binding: FragmentFavoritesBinding
-    private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
-
+    private lateinit var binding: DiscoveredLayoutBinding
+    private val viewModel: DiscoveredViewModel by viewModels(ownerProducer = { this })
+    private var pageCount = 1
     private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
     private lateinit var favoritesManager: FavoritesManager
     private lateinit var loadingView: ProgressBar
     private lateinit var recyclerView: RecyclerView
+    private lateinit var genres: ArrayList<Int>
 
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentFavoritesBinding.inflate(inflater, container, false)
+        binding = DiscoveredLayoutBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarFavorites)
-        toolbarTitle.text = "Favorite Movies"
-
+        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarDiscovered)
+        toolbarTitle.text = "Discover"
+        genres = requireArguments().getIntegerArrayList(BundleKeys.REQUEST_DISCOVER) as ArrayList<Int>
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
         favoritesManager = FavoritesManager.getInstance(movieDao)
@@ -62,11 +65,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         listenViewModel()
     }
 
-    override fun onStart(){
-        super.onStart()
-        viewModel.createList()
-
-    }
     private fun initView(view: View) {
         view.apply {
             recyclerView = binding.recycler
@@ -83,11 +81,18 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     }
 
 
+    override fun onStart(){
+        super.onStart()
+        viewModel.displayGroup(pageCount,genres)
+
+    }
+
+
 
     private fun listenViewModel() {
         viewModel.apply {
-            liveDataFavoritesList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.updateList(it)
+            liveDataMovieList.observe(viewLifecycleOwner) {
+                movieRecyclerAdapter.updateMovieList(it)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
@@ -95,7 +100,8 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
-                    viewModel.displayGroup()
+                    pageCount++
+                    viewModel.displayGroup(pageCount, genres)
                 }
             })
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
@@ -168,37 +174,5 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
         }
 
-    }
-    private fun removeMovieFromDB(clickedMovie: MovieDetail, heartButton: ImageButton){
-
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_red)
-                clickedMovie.heart_tag  = "filled"
-            }
-        }
-
-    }
-    private fun addMovieToDB(clickedMovie: MovieDetail, heartButton: ImageButton){
-
-        val newMovie = Movie(movie_id = clickedMovie.id)
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.insert(newMovie)
-                }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_outlined)
-                clickedMovie.heart_tag = "outline"
-            }
-        }
     }
 }

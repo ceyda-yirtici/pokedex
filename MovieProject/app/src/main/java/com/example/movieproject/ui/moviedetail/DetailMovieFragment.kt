@@ -1,12 +1,18 @@
 package com.example.movieproject.ui.moviedetail
 
+import android.content.Context
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.core.view.marginBottom
+import androidx.core.view.marginEnd
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,8 +21,8 @@ import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentDetailBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
-import com.example.movieproject.room.Movie
 import com.example.movieproject.service.MovieService
+import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,6 +40,8 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     private lateinit var binding: FragmentDetailBinding
     private var movieId: Int = -1
     private lateinit var loadingView: ProgressBar
+    private lateinit var favoritesManager: FavoritesManager
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,7 +51,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
 
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
-
+        favoritesManager = FavoritesManager.getInstance(movieDao)
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,11 +101,25 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             if (movieDetail.heart_tag == "filled") {
                 heartButton.setImageResource(R.drawable.heart_shape_outlined)
                 movieDetail.heart_tag = "outline"
-                removeMovieFromDB(movieDetail, heartButton)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        favoritesManager.removeMovieFromDB(
+                            movieDetail,
+                            heartButton
+                        )
+                    }
+                }
             } else {
                 heartButton.setImageResource(R.drawable.heart_shape_red)
                 movieDetail.heart_tag = "filled"
-                addMovieToDB(movieDetail, heartButton)
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        favoritesManager.addMovieToDB(
+                            movieDetail,
+                            heartButton
+                        )
+                    }
+                }
             }
 
 
@@ -126,40 +148,50 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             val photo = binding.detailPhoto
             val photoUrl = it.backdrop_path
             Glide.with(photo).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).into(photo)
+
+            val genreList : ArrayList<String> = arrayListOf()
+             it.genres.map {
+                 genreList.add(it.genre_name)
+            }
+            decideAddingGenreView(genreList)
         }
 
     }
-    private fun addMovieToDB(clickedMovie: MovieDetail, heartButton: ImageButton){
+    private fun decideAddingGenreView(genre_names: ArrayList<String>){
 
-        val newMovie = Movie(movie_id = clickedMovie.id)
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.insert(newMovie)
-                }
+        val genreContainer: LinearLayout = binding.genreContainer
 
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_outlined)
-                clickedMovie.heart_tag = "outline"
+        // Clear any previous genres before adding new ones
+        genreContainer.removeAllViews()
+
+        // Get the width of the views
+        val screenWidthInDp = convertPixelsToDp(Resources.getSystem().displayMetrics.widthPixels, binding.root.context)
+
+        // Add each genre to the LinearLayout as separate rounded corner boxes
+        var totalWidthInDp = 0
+        for (genreName in genre_names) {
+            Log.d("GenreAdapter", "Genre Name: $genreName")
+            val genreView = LayoutInflater.from(binding.root.context)
+                .inflate(R.layout.item_genre, genreContainer, false)
+            genreView.setBackgroundResource(R.drawable.genre_details_background)
+            val genreTextView = genreView.findViewById<TextView>(R.id.genreTextView)
+            genreTextView.text = genreName
+
+            // Measure the genreView width and add it to the totalWidth
+            genreView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            totalWidthInDp += convertPixelsToDp(genreView.measuredWidth, binding.root.context)
+            totalWidthInDp += convertPixelsToDp(
+                    genreContainer.marginEnd , binding.root.context)
+            // Check if the totalWidth exceeds the availableWidth
+            if (totalWidthInDp > screenWidthInDp) {
+                break
             }
+            // Add the genre item to the actual genreContainer
+            genreContainer.addView(genreView)
         }
     }
-    private fun removeMovieFromDB(clickedMovie: MovieDetail, heartButton: ImageButton){
-
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_red)
-                clickedMovie.heart_tag = "filled"
-            }
-        }
-
+    private fun convertPixelsToDp(px: Int, context: Context): Int {
+        return (px / context.resources.displayMetrics.density).toInt()
     }
 
 
