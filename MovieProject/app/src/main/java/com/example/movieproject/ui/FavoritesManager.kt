@@ -16,6 +16,8 @@ import javax.inject.Singleton
 @Singleton
 class FavoritesManager private constructor(private val movieDao: MovieDao) {
 
+
+
     private var heartResource: Int = R.drawable.heart_shape_grey
 
 

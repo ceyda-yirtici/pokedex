@@ -1,5 +1,6 @@
 package com.example.movieproject.ui.discover
 
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,7 @@ import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
 import com.example.movieproject.utils.BundleKeys
+import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DiscoveredViewModel @Inject constructor(
-    private val movieService: MovieService
+    private val movieService: MovieService,  application: Application
 )
     : ViewModel() {
 
@@ -25,8 +27,25 @@ class DiscoveredViewModel @Inject constructor(
     private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
     val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
-    val liveDataLoading = MutableLiveData<Boolean>()
 
+    private val _liveDataLikedMovieIds = MutableLiveData<List<Int>>()
+    val liveDataLikedMovieIds: LiveData<List<Int>> = _liveDataLikedMovieIds
+
+    private val movieDao: MovieDao
+    init {
+        val database = AppDatabaseProvider.getAppDatabase(application)
+        movieDao = database.movieDao()
+        viewModelScope.launch(Dispatchers.IO) {
+            _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
+        }
+    }
+
+    val liveDataLoading = MutableLiveData<Boolean>()
+    fun updateLikedMovieIds() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
+        }
+    }
     private fun callDiscoveredRepos(page:Int, with_genres:String){
         viewModelScope.launch(Dispatchers.IO) {
             try {

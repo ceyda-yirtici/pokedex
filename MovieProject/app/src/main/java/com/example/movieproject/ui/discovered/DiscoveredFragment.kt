@@ -75,7 +75,6 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
             // Set the adapter to the RecyclerView
             recyclerView.adapter = movieRecyclerAdapter
-
             loadingView = binding.loading
         }
     }
@@ -83,6 +82,7 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
     override fun onStart(){
         super.onStart()
+        viewModel.updateLikedMovieIds()
         viewModel.displayGroup(pageCount,genres)
 
     }
@@ -98,6 +98,10 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
                 loadingView.visibility = if (it) View.VISIBLE else View.GONE
                 recyclerView.visibility = if (it) View.GONE else View.VISIBLE
             }
+            liveDataLikedMovieIds.observe(viewLifecycleOwner) {
+                movieRecyclerAdapter.setLikedMovieIds(it)
+            }
+
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     pageCount++
