@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.discover.DiscoveredFragment">
+    tools:context=".ui.discover.DiscoverFragment">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -37,15 +37,28 @@
     <SeekBar
         android:id="@+id/seekBar"
         style="@style/Widget.AppCompat.SeekBar.Discrete"
-        android:layout_width="356dp"
+        android:layout_width="360dp"
         android:layout_height="100dp"
         android:layout_marginTop="34dp"
-        android:max="10"
-
-        android:progress="3"
+        android:max="20"
+        android:progress="0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/vote" />
+
+    <TextView
+        android:id="@+id/degreeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="0.0"
+        android:translationX="0dp"
+        android:layout_marginBottom="48dp"
+        android:layout_marginStart="6dp"
+        app:layout_constraintStart_toStartOf="@+id/seekBar"
+        app:layout_constraintTop_toTopOf="@+id/seekBar"
+        app:layout_constraintBottom_toBottomOf="@+id/seekBar"
+        />
 
     <View
         android:id="@+id/divider2"
@@ -132,7 +145,7 @@
         android:id="@+id/vote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vote Rate"
+        android:text="Min Vote Rate"
         android:layout_marginTop="35dp"
         android:layout_marginStart="20dp"
         android:textSize="18sp"

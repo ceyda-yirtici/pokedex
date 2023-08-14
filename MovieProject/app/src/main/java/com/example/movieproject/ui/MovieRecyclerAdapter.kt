@@ -119,10 +119,11 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
                 movie.text = detail.title
                 movie_desc.text = detail.overview
-                if (detail.release_date.length > 0)
+                if (detail.release_date.isNotEmpty())
                     date.text = detail.release_date.subSequence(0, 4)
                 else date.text = "invalid"
-                vote.text = detail.vote.toString().subSequence(0,3)
+
+                vote.text = detail.vote.toString()
             }
             else {
                 heartResource= R.drawable.heart_shape_grey

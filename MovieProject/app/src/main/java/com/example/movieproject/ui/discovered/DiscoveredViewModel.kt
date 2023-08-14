@@ -46,10 +46,14 @@ class DiscoveredViewModel @Inject constructor(
             _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
         }
     }
-    private fun callDiscoveredRepos(page:Int, with_genres:String){
+
+    fun getDao(): MovieDao{
+        return movieDao
+    }
+    private fun callDiscoveredRepos(page:Int, with_genres:String, min_vote : Float){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val newMovieList = movieService.discover(BundleKeys.API_KEY, page, with_genres)
+                val newMovieList = movieService.discover(BundleKeys.API_KEY, page, with_genres, min_vote)
                 val currentList = _liveDataMovieList.value ?: emptyList()
                 val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
                     addAll(newMovieList.results)
@@ -67,9 +71,8 @@ class DiscoveredViewModel @Inject constructor(
 
 
 
-    fun displayGroup(page:Int, with_genres:ArrayList<Int>) {
-        val resultString = with_genres.joinToString(separator = ",")
-        callDiscoveredRepos(page, resultString)
+    fun displayGroup(page:Int, with_genres:String, min_vote : Float) {
+        callDiscoveredRepos(page, with_genres, min_vote)
     }
 
 

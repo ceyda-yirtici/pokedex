@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.marginStart
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -26,6 +28,7 @@ class DiscoverFragment : Fragment() {
     private lateinit var dialogView: View
     private lateinit var chipGroupDialog: ChipGroup
     private var selectedChips: MutableList<String> = mutableListOf()
+    private var seekBarResult: Float = 0.0F
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
@@ -40,6 +43,8 @@ class DiscoverFragment : Fragment() {
             R.layout.genre_dialog_layout, null)
 
         chipGroupDialog = dialogView.findViewById(R.id.chipGroupDialog)
+        chipGroupDialog.removeAllViews()
+        selectedChips = arrayListOf()
         return binding.root
     }
 
@@ -47,6 +52,7 @@ class DiscoverFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         listenViewModel()
     }
+
 
     private fun listenViewModel() {
 
@@ -59,6 +65,24 @@ class DiscoverFragment : Fragment() {
             binding.discoverButton.setOnClickListener {
                 onDiscoverButtonClicked()
             }
+            binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    // This method is called when the SeekBar's progress changes
+                    // You can perform actions based on the progress value here
+                    seekBarResult = progress.toFloat()/2
+                    binding.degreeText.text = seekBarResult.toString()
+                    binding.degreeText.translationX = (progress * 45).toFloat()
+
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    // This method is called when the user starts interacting with the SeekBar
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    // This method is called when the user stops interacting with the SeekBar
+                }
+            })
 
         }
 
@@ -71,13 +95,18 @@ class DiscoverFragment : Fragment() {
         viewModel.liveDataGenreList.observe(viewLifecycleOwner){
             ids = it.filterValues { it in selectedChips }.keys.toMutableList()
         }
+        val resultString = ids.joinToString(separator = ",")
         val bundle = Bundle().apply {
-            putIntegerArrayList(BundleKeys.REQUEST_DISCOVER, ArrayList(ids))
+            putString(BundleKeys.REQUEST_DISCOVER, resultString)
+            putFloat(BundleKeys.MIN_VOTE, seekBarResult)
         }
 
         val destinationFragment = DiscoveredFragment()
         destinationFragment.arguments = bundle
         findNavController().navigate(R.id.discoveredFragment, bundle) // R.id.action_detail
+
+        chipGroupDialog.removeAllViews()
+        selectedChips = arrayListOf()
     }
 
     override fun onDestroyView() {

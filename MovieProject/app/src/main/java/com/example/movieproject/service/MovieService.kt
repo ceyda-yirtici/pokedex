@@ -24,7 +24,7 @@ interface MovieService {
     suspend fun getMovie(@Path("movie_id") id: Int, @Query("api_key") api_key:String) : MovieDetail
 
     @GET("discover/movie")
-    suspend fun discover(@Query("api_key") api_key:String, @Query("page") page:Int, @Query("with_genres") with_genres:String) : MovieList
+    suspend fun discover(@Query("api_key") api_key:String, @Query("page") page:Int, @Query("with_genres") with_genres:String,  @Query("vote_average.gte") min_vote: Float) : MovieList
 
 }
 

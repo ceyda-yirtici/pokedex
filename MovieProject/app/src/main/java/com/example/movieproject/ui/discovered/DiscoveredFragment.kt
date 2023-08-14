@@ -34,7 +34,6 @@ import kotlinx.coroutines.withContext
 @AndroidEntryPoint
 class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
-    private lateinit var movieDao: MovieDao
     private lateinit var binding: DiscoveredLayoutBinding
     private val viewModel: DiscoveredViewModel by viewModels(ownerProducer = { this })
     private var pageCount = 1
@@ -42,7 +41,8 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
     private lateinit var favoritesManager: FavoritesManager
     private lateinit var loadingView: ProgressBar
     private lateinit var recyclerView: RecyclerView
-    private lateinit var genres: ArrayList<Int>
+    private var genres: String = ""
+    private var minVote = 0.0F
 
 
     override fun onCreateView(
@@ -57,10 +57,9 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
         super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = view.findViewById<TextView>(R.id.toolbarDiscovered)
         toolbarTitle.text = "Discover"
-        genres = requireArguments().getIntegerArrayList(BundleKeys.REQUEST_DISCOVER) as ArrayList<Int>
-        val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
-        movieDao = database.movieDao()
-        favoritesManager = FavoritesManager.getInstance(movieDao)
+        genres = requireArguments().getString(BundleKeys.REQUEST_DISCOVER).toString()
+        minVote = requireArguments().getFloat(BundleKeys.MIN_VOTE)
+        favoritesManager = FavoritesManager.getInstance(viewModel.getDao())
         initView(view)
         listenViewModel()
     }
@@ -83,7 +82,7 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
     override fun onStart(){
         super.onStart()
         viewModel.updateLikedMovieIds()
-        viewModel.displayGroup(pageCount,genres)
+        viewModel.displayGroup(pageCount, genres, minVote)
 
     }
 
@@ -101,11 +100,10 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
             }
-
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     pageCount++
-                    viewModel.displayGroup(pageCount, genres)
+                    viewModel.displayGroup(pageCount, genres, minVote)
                 }
             })
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
