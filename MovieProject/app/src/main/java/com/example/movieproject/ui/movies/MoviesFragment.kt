@@ -34,20 +34,14 @@ import kotlinx.coroutines.withContext
 @AndroidEntryPoint
 class MoviesFragment : Fragment(){
 
-    private lateinit var movieDao: MovieDao
     private lateinit var binding: FragmentMoviesBinding
+    private lateinit var favoritesManager: FavoritesManager
     private var pageCount = 1
     private val viewModel: MoviesViewModel by viewModels(ownerProducer = { this })
     private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
-    private lateinit var loadingView: ProgressBar
-    private lateinit var recyclerView: RecyclerView
     private var heartResource: Int = R.drawable.heart_shape_grey
-    private lateinit var viewButton: ImageButton
-    private lateinit var searchView: SearchView
     private var listViewType = true
-    private lateinit var toolbarTitle : TextView
     private var userQuery = ""
-    private lateinit var favoritesManager: FavoritesManager
 
 
     override fun onCreateView(
@@ -60,24 +54,17 @@ class MoviesFragment : Fragment(){
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        toolbarTitle = view.findViewById<TextView>(R.id.toolbarTitle)
-        toolbarTitle.text = "Popular Movies"
-        val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
-        movieDao = database.movieDao()
-        favoritesManager = FavoritesManager.getInstance(movieDao)
+        binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).text = "Popular Movies"
+        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
-
         super.onViewCreated(view, savedInstanceState)
     }
 
 
     private fun initView(view: View){
         view.apply {
-            viewButton = findViewById(R.id.gridOrList)
-            searchView = findViewById(R.id.searchView)
-            loadingView = findViewById(R.id.loading)
 
-            viewButton.setOnClickListener {
+            binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).setOnClickListener {
                 listViewType = !listViewType
                 setupViewMode()
                 listenViewModel()
@@ -92,11 +79,10 @@ class MoviesFragment : Fragment(){
 
     private fun setupViewMode() {
 
-        recyclerView = binding.recycler
         var layoutManager: LinearLayoutManager? = null
         if (!listViewType) {
-            searchView.visibility = View.GONE
-            viewButton.setImageResource(R.drawable.ic_list_view)
+            binding.toolbar.findViewById<SearchView>(R.id.searchView).visibility = View.GONE
+            binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).setImageResource(R.drawable.ic_list_view)
             heartResource = R.drawable.heart_shape_grey
             val orientation = resources.configuration.orientation
             var spanCount = 3
@@ -106,15 +92,15 @@ class MoviesFragment : Fragment(){
             }
             layoutManager = GridLayoutManager(requireContext(), spanCount)
         } else {
-            searchView.visibility = View.VISIBLE
-            viewButton.setImageResource(R.drawable.ic_grid_24dp)
+            binding.toolbar.findViewById<SearchView>(R.id.searchView).visibility = View.VISIBLE
+            binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).setImageResource(R.drawable.ic_grid_24dp)
             heartResource = R.drawable.heart_shape_outlined
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        recyclerView.layoutManager = layoutManager
+        binding.recycler.layoutManager = layoutManager
         // Set the adapter to the RecyclerView
-        recyclerView.adapter = movieRecyclerAdapter
+        binding.recycler.adapter = movieRecyclerAdapter
     }
 
     override fun onStart(){
@@ -134,8 +120,8 @@ class MoviesFragment : Fragment(){
                 movieRecyclerAdapter.updateViewType(listViewType)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
-                loadingView.visibility = if (it) View.VISIBLE else View.GONE
-                recyclerView.visibility = if (it) View.GONE else View.VISIBLE
+                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
+                binding.recycler.visibility = if (it) View.GONE else View.VISIBLE
             }
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
@@ -146,7 +132,7 @@ class MoviesFragment : Fragment(){
                     Log.e("initview", "you reached end")
                     pageCount++
                     viewModel.setPageNumber(pageCount)
-                    if(toolbarTitle.visibility == View.VISIBLE)
+                    if( binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).visibility == View.VISIBLE)
                         viewModel.displayGroup(pageCount)
                     else viewModel.searchMovies(userQuery, pageCount)
 
@@ -167,12 +153,12 @@ class MoviesFragment : Fragment(){
                 }
 
             })
-            searchView.setOnSearchClickListener {
-                toolbarTitle.visibility = View.GONE
-                viewButton.visibility = View.GONE
+            binding.toolbar.findViewById<SearchView>(R.id.searchView).setOnSearchClickListener {
+                binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).visibility = View.GONE
+                binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).visibility = View.GONE
                 setUpListComponents()
             }
-            searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener  {
+            binding.toolbar.findViewById<SearchView>(R.id.searchView).setOnQueryTextListener(object: SearchView.OnQueryTextListener  {
 
                 override fun onQueryTextSubmit(query: String?): Boolean {
                     if (query != null) {
@@ -189,16 +175,16 @@ class MoviesFragment : Fragment(){
                         viewModel.searchMovies(query, pageCount)
                         userQuery =  query
 
-                        toolbarTitle.visibility = View.GONE
-                        viewButton.visibility = View.GONE
+                        binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).visibility = View.GONE
+                        binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).visibility = View.GONE
                         setUpListComponents()
                     }
                     return false
                 }
             })
-            searchView.setOnCloseListener {
-                toolbarTitle.visibility = View.VISIBLE
-                viewButton.visibility = View.VISIBLE
+            binding.toolbar.findViewById<SearchView>(R.id.searchView).setOnCloseListener {
+                binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).visibility = View.VISIBLE
+                binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).visibility = View.VISIBLE
                 setUpListComponents()
                 viewModel.displayGroup(pageCount)
 

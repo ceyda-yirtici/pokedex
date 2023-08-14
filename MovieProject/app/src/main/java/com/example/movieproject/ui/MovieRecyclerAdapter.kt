@@ -20,12 +20,13 @@ import com.bumptech.glide.Glide
 import com.example.movieproject.R
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.utils.BundleKeys
+import java.util.Locale
 
 
 class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
     private var movieList: MutableList<MovieDetail> = mutableListOf()
-    private var genreMapper : HashMap<Int, String> = HashMap()
+    companion object {private var genreMapper : HashMap<Int, String> = HashMap()}
     private var likedMovieIds: List<Int> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var onBottomReachedListener: OnBottomReachedListener
@@ -123,7 +124,8 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                     date.text = detail.release_date.subSequence(0, 4)
                 else date.text = "invalid"
 
-                vote.text = detail.vote.toString()
+                val formattedVote = String.format(Locale.US, "%.1f", detail.vote)
+                vote.text = formattedVote
             }
             else {
                 heartResource= R.drawable.heart_shape_grey

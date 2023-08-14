@@ -22,26 +22,22 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class DiscoverFragment : Fragment() {
 
-    private var _binding: FragmentDiscoverBinding? = null
+    private lateinit var binding: FragmentDiscoverBinding
+    private lateinit var dialogView: View // only for genre dialog
+    private lateinit var chipGroupDialog: ChipGroup // only for genre dialog
     private val viewModel: DiscoverViewModel by viewModels(ownerProducer = { this })
     private var chipGroup : MutableList<String> = mutableListOf()
-    private lateinit var dialogView: View
-    private lateinit var chipGroupDialog: ChipGroup
     private var selectedChips: MutableList<String> = mutableListOf()
     private var seekBarResult: Float = 0.0F
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentDiscoverBinding.inflate(inflater, container, false)
+        binding = FragmentDiscoverBinding.inflate(inflater, container, false)
         dialogView = LayoutInflater.from(requireContext()).inflate(
-            R.layout.genre_dialog_layout, null)
-
+        R.layout.genre_dialog_layout, null)
         chipGroupDialog = dialogView.findViewById(R.id.chipGroupDialog)
         chipGroupDialog.removeAllViews()
         selectedChips = arrayListOf()
@@ -107,11 +103,6 @@ class DiscoverFragment : Fragment() {
 
         chipGroupDialog.removeAllViews()
         selectedChips = arrayListOf()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     fun createChip(text: String, isCheckable: Boolean): Chip {

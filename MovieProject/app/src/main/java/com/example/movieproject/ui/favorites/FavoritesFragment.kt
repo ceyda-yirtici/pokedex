@@ -32,14 +32,10 @@ import kotlinx.coroutines.withContext
 @AndroidEntryPoint
 class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
-    private lateinit var movieDao: MovieDao
     private lateinit var binding: FragmentFavoritesBinding
-    private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
-
-    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
     private lateinit var favoritesManager: FavoritesManager
-    private lateinit var loadingView: ProgressBar
-    private lateinit var recyclerView: RecyclerView
+    private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
+    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
 
 
     override fun onCreateView(
@@ -52,12 +48,9 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarFavorites)
+        val toolbarTitle = binding.toolbar.findViewById<TextView>(R.id.toolbarFavorites)
         toolbarTitle.text = "Favorite Movies"
-
-        val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
-        movieDao = database.movieDao()
-        favoritesManager = FavoritesManager.getInstance(movieDao)
+        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
         listenViewModel()
     }
@@ -69,16 +62,9 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     }
     private fun initView(view: View) {
         view.apply {
-            recyclerView = binding.recycler
             val layoutManager = LinearLayoutManager(requireContext())
-            recyclerView.layoutManager = layoutManager
-
-            // Create the adapter instance
-
-            // Set the adapter to the RecyclerView
-            recyclerView.adapter = movieRecyclerAdapter
-
-            loadingView = binding.loading
+            binding.recycler.layoutManager = layoutManager
+            binding.recycler.adapter = movieRecyclerAdapter
         }
     }
 
@@ -90,8 +76,8 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 movieRecyclerAdapter.updateList(it)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
-                loadingView.visibility = if (it) View.VISIBLE else View.GONE
-                recyclerView.visibility = if (it) View.GONE else View.VISIBLE
+                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
+                binding.recycler.visibility = if (it) View.GONE else View.VISIBLE
             }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
@@ -118,12 +104,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
         }
     }
-
-
-
-
-
-
     private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
@@ -168,37 +148,5 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
             }
         }
 
-    }
-    private fun removeMovieFromDB(clickedMovie: MovieDetail, heartButton: ImageButton){
-
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.delete( viewModel.getMovieDao().get(clickedMovie.id))
-                }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_red)
-                clickedMovie.heart_tag  = "filled"
-            }
-        }
-
-    }
-    private fun addMovieToDB(clickedMovie: MovieDetail, heartButton: ImageButton){
-
-        val newMovie = Movie(movie_id = clickedMovie.id)
-        lifecycleScope.launch {
-            try {
-                // Execute the database operation on the IO dispatcher
-                withContext(Dispatchers.IO) {
-                    movieDao.insert(newMovie)
-                }
-
-            } catch (e: Exception) {
-                heartButton.setImageResource(R.drawable.heart_shape_outlined)
-                clickedMovie.heart_tag = "outline"
-            }
-        }
     }
 }

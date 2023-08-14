@@ -35,12 +35,10 @@ import kotlinx.coroutines.withContext
 class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
     private lateinit var binding: DiscoveredLayoutBinding
+    private lateinit var favoritesManager: FavoritesManager
     private val viewModel: DiscoveredViewModel by viewModels(ownerProducer = { this })
     private var pageCount = 1
     private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
-    private lateinit var favoritesManager: FavoritesManager
-    private lateinit var loadingView: ProgressBar
-    private lateinit var recyclerView: RecyclerView
     private var genres: String = ""
     private var minVote = 0.0F
 
@@ -55,26 +53,20 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarDiscovered)
+        val toolbarTitle = binding.toolbarDiscovered
         toolbarTitle.text = "Discover"
+        favoritesManager = FavoritesManager.getInstance(viewModel.getDao())
         genres = requireArguments().getString(BundleKeys.REQUEST_DISCOVER).toString()
         minVote = requireArguments().getFloat(BundleKeys.MIN_VOTE)
-        favoritesManager = FavoritesManager.getInstance(viewModel.getDao())
         initView(view)
         listenViewModel()
     }
 
     private fun initView(view: View) {
         view.apply {
-            recyclerView = binding.recycler
             val layoutManager = LinearLayoutManager(requireContext())
-            recyclerView.layoutManager = layoutManager
-
-            // Create the adapter instance
-
-            // Set the adapter to the RecyclerView
-            recyclerView.adapter = movieRecyclerAdapter
-            loadingView = binding.loading
+            binding.recycler.layoutManager = layoutManager
+            binding.recycler.adapter = movieRecyclerAdapter
         }
     }
 
@@ -94,8 +86,8 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
                 movieRecyclerAdapter.updateMovieList(it)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
-                loadingView.visibility = if (it) View.VISIBLE else View.GONE
-                recyclerView.visibility = if (it) View.GONE else View.VISIBLE
+                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
+                binding.recycler.visibility = if (it) View.GONE else View.VISIBLE
             }
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)

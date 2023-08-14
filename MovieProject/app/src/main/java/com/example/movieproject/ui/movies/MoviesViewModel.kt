@@ -138,6 +138,10 @@ class MoviesViewModel @Inject constructor(
             callMovieRepos(page)
     }
 
+    fun getMovieDao(): MovieDao {
+        return movieDao
+
+    }
 
 
 }

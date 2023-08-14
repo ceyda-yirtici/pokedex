@@ -33,14 +33,10 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
-    @Inject
-    lateinit var movieService: MovieService
-    private lateinit var movieDao: MovieDao
-    private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
     private lateinit var binding: FragmentDetailBinding
-    private var movieId: Int = -1
-    private lateinit var loadingView: ProgressBar
     private lateinit var favoritesManager: FavoritesManager
+    private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
+    private var movieId: Int = -1
 
 
     override fun onCreateView(
@@ -48,23 +44,13 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentDetailBinding.inflate(layoutInflater, container, false)
-
-        val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
-        movieDao = database.movieDao()
-        favoritesManager = FavoritesManager.getInstance(movieDao)
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         movieId = requireArguments().getInt(BundleKeys.REQUEST_ID)
-        initView(view)
         listenViewModel()
-    }
-
-    private fun initView(view:View){
-        view.apply {
-            loadingView = binding.loading
-        }
     }
 
     private fun listenViewModel() {
@@ -86,7 +72,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
                 binding.heartInDetail.visibility = if (it) View.GONE else View.VISIBLE
                 binding.star.visibility = if (it) View.GONE else View.VISIBLE
                 binding.voteText.visibility = if (it) View.GONE else View.VISIBLE
-                loadingView.visibility = if (it) View.VISIBLE else View.GONE
+                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
             }
             displayMovie(movieId)
         }
@@ -136,7 +122,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             val count = withContext(Dispatchers.IO) {
-                movieDao.getCountById(movieId)
+                viewModel.getMovieDao().getCountById(movieId)
             }
             if (count > 0) {
                 binding.heartInDetail.setImageResource(R.drawable.heart_shape_red)
