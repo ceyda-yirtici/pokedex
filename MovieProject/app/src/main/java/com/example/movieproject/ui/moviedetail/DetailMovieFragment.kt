@@ -2,54 +2,50 @@ package com.example.movieproject.ui.moviedetail
 
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentDetailBinding
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.room.AppDatabaseProvider
-import com.example.movieproject.service.MovieService
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.utils.BundleKeys
-import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     private lateinit var binding: FragmentDetailBinding
     private lateinit var favoritesManager: FavoritesManager
     private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
-    private var movieId: Int = -1
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentDetailBinding.inflate(layoutInflater, container, false)
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
-        movieId = requireArguments().getInt(BundleKeys.REQUEST_ID)
+
         listenViewModel()
     }
 
@@ -63,18 +59,13 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
                 binding.heartInDetail.setOnClickListener(
                     onHeartButtonClick(it)
                 )
+
+
             }
-            liveDataLoading.observe(viewLifecycleOwner) {
-                binding.detailPhoto.visibility = if (it) View.GONE else View.VISIBLE
-                binding.releaseDate.visibility = if (it) View.GONE else View.VISIBLE
-                binding.movieDescription.visibility = if (it) View.GONE else View.VISIBLE
-                binding.title.visibility = if (it) View.GONE else View.VISIBLE
-                binding.heartInDetail.visibility = if (it) View.GONE else View.VISIBLE
-                binding.star.visibility = if (it) View.GONE else View.VISIBLE
-                binding.voteText.visibility = if (it) View.GONE else View.VISIBLE
-                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
+            binding.toolbar.setNavigationOnClickListener {
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
-            displayMovie(movieId)
+            displayMovie(requireArguments().getInt(BundleKeys.REQUEST_ID))
         }
 
 
@@ -119,10 +110,9 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         binding.movieDescription.text = it.overview
         binding.releaseDate.text = it.release_date.subSequence(0,4)
         binding.voteText.text = it.vote.toString().subSequence(0,3)
-
         viewLifecycleOwner.lifecycleScope.launch {
             val count = withContext(Dispatchers.IO) {
-                viewModel.getMovieDao().getCountById(movieId)
+                viewModel.getMovieDao().getCountById(requireArguments().getInt(BundleKeys.REQUEST_ID))
             }
             if (count > 0) {
                 binding.heartInDetail.setImageResource(R.drawable.heart_shape_red)
@@ -133,7 +123,26 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             }
             val photo = binding.detailPhoto
             val photoUrl = it.backdrop_path
-            Glide.with(photo).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).into(photo)
+            Glide.with(this@DetailMovieFragment).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).
+            listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(p0: GlideException?, p1: Any?, p2: Target<Drawable>?, p3: Boolean): Boolean {
+                    Log.e("glide", "onLoadFailed")
+                    return false
+                }
+                override fun onResourceReady(p0: Drawable?, p1: Any?, p2: Target<Drawable>?, p3: DataSource?, p4: Boolean): Boolean {
+                    Log.d("glide", "OnResourceReady")
+                    binding.detailPhoto.visibility = View.VISIBLE
+                    binding.releaseDate.visibility = View.VISIBLE
+                    binding.movieDescription.visibility = View.VISIBLE
+                    binding.title.visibility = View.VISIBLE
+                    binding.heartInDetail.visibility =View.VISIBLE
+                    binding.star.visibility = View.VISIBLE
+                    binding.voteText.visibility =  View.VISIBLE
+                    binding.loading.visibility = View.GONE
+                    return false
+                }
+            })
+                .into(photo)
 
             val genreList : ArrayList<String> = arrayListOf()
              it.genres.map {

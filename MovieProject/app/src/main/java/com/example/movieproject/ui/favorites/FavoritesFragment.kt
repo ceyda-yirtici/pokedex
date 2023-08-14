@@ -37,7 +37,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
     private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
 
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,6 +59,13 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         viewModel.createList()
 
     }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        listenViewModel()
+    }
+
+
     private fun initView(view: View) {
         view.apply {
             val layoutManager = LinearLayoutManager(requireContext())
@@ -110,6 +116,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_ID, id)
             putInt(BundleKeys.position, position)
+            putInt(BundleKeys.ACTION_ID, 2)
         }
 
         val destinationFragment = DetailMovieFragment()

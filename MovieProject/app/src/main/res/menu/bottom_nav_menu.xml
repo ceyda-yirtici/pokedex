@@ -6,7 +6,7 @@
     <item
         android:id="@+id/navigation_movies"
         android:icon="@drawable/ic_film_black"
-        android:title="Film List" />
+        android:title="Popular" />
 
     <item
         android:id="@+id/navigation_favorites"
@@ -14,8 +14,8 @@
         android:title="Favorites" />
 
     <item
-        android:id="@+id/navigation_watchlist"
-        android:icon="@drawable/watching_list"
-        android:title="Watching List" />
+        android:id="@+id/navigation_discover"
+        android:icon="@drawable/discover"
+        android:title="Discover" />
 
 </menu>

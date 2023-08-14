@@ -8,7 +8,14 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:windowBackground">@color/White_100</item>
+
+
     </style>
+
+    <style name="Toolbar.NavigationButton" parent="Widget.AppCompat.Toolbar.Button.Navigation">
+        <item name="android:tint">@color/colorAccent</item>
+    </style>
+
     <style name="AppTheme.Toolbar" parent="Widget.AppCompat.Toolbar">
         <item name="android:background">@color/White_100</item>
     </style>

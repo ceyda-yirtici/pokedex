@@ -113,9 +113,6 @@ class FavoritesViewModel @Inject constructor(
             nextTenKeys.add(entry.key)
             databaseList.value[entry.key] = true
         }
-
-
-
         Log.d("nextTenKeys", nextTenKeys.toString())
         return nextTenKeys
     }

@@ -27,7 +27,6 @@ class DetailsViewModel @Inject constructor(
 
     private val movieDao: MovieDao
 
-    val liveDataLoading = MutableLiveData<Boolean>()
 
     private val _liveDataMovie = MutableLiveData<MovieDetail>()
     val liveDataMovie: LiveData<MovieDetail> = _liveDataMovie
@@ -41,7 +40,6 @@ class DetailsViewModel @Inject constructor(
     fun getMovieDao(): MovieDao {
         return movieDao
     }
-
     private fun callMovieRepos(id:Int) {
         viewModelScope.launch(Dispatchers.IO) {
             val movie = try {
@@ -51,7 +49,6 @@ class DetailsViewModel @Inject constructor(
                 ""
             }
             _liveDataMovie.postValue(movie as MovieDetail?)
-            liveDataLoading.postValue(false)
         }
     }
     fun displayMovie(id:Int) {

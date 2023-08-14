@@ -7,7 +7,6 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class MovieApplication : Application() {
-    lateinit var appComponent: AppComponent
     override fun onCreate() {
         super.onCreate()
     }

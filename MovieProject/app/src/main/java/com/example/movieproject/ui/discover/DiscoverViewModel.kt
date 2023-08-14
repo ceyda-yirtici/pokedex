@@ -21,25 +21,15 @@ class DiscoverViewModel @Inject constructor(
 )
     : ViewModel() {
 
-
-    private val _text = MutableLiveData<String>().apply {
-        value = "Discover"
-    }
-    val text: LiveData<String> = _text
-
-
     private val _liveDataGenreList = MutableLiveData<HashMap<Int, String>>()
     val liveDataGenreList: LiveData<HashMap<Int, String>> = _liveDataGenreList
-
 
     private val _genreOptionList = MutableLiveData<MutableList<String>>()
     val genreOptionList: LiveData<MutableList<String>> = _genreOptionList
 
-
     init {
         callGenreRepos()
     }
-
 
     private fun callGenreRepos() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -59,21 +49,5 @@ class DiscoverViewModel @Inject constructor(
                 _liveDataGenreList.postValue(HashMap())
             }
         }
-    }
-    fun setGenreOptionList(removed: String) {
-
-    }
-
-
-    fun getGenres(){
-        callGenreRepos()
-    }
-    fun updateGenreOptionList(selectedOptions: MutableList<String>) {
-        val genreList = genreOptionList.value ?: mutableListOf()
-
-        val updatedGenreList = genreList.filter { it in selectedOptions
-        }.toMutableList()
-
-        _genreOptionList.value = updatedGenreList
     }
 }

@@ -6,14 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.marginStart
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentDiscoverBinding
-import com.example.movieproject.ui.favorites.DiscoveredFragment
-import com.example.movieproject.ui.moviedetail.DetailMovieFragment
+import com.example.movieproject.ui.discovered.DiscoveredFragment
 import com.example.movieproject.utils.BundleKeys
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup

@@ -132,7 +132,8 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 val movie: TextView = itemView.findViewById(R.id.title_grid)
                 val photo: ImageView = itemView.findViewById(R.id.photoGrid)
 
-                Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
+                Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path)
+                    .into(photo)
                 movie.text = detail.title
             }
 

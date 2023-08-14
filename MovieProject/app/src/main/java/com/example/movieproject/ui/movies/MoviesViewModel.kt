@@ -88,15 +88,6 @@ class MoviesViewModel @Inject constructor(
             }
         }
     }
-
-    fun reloadMovieList(userQuery: String, pageCount:Int) {
-        if (userQuery.isNotEmpty()) {
-            searchMovies(userQuery, pageCount)
-        } else {
-            displayGroup(pageCount)
-        }
-    }
-
     private fun callSearchRepos(query:String, page: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

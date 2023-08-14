@@ -1,40 +1,32 @@
-package com.example.movieproject.ui.favorites
+package com.example.movieproject.ui.discovered
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
-import com.example.movieproject.databinding.DiscoveredLayoutBinding
-import com.example.movieproject.databinding.FragmentFavoritesBinding
+import com.example.movieproject.databinding.FragmentDiscoveredBinding
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.room.AppDatabaseProvider
-import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.ui.discover.DiscoveredViewModel
 import com.example.movieproject.utils.BundleKeys
-import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
-class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
+class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
 
-    private lateinit var binding: DiscoveredLayoutBinding
+    private lateinit var binding: FragmentDiscoveredBinding
     private lateinit var favoritesManager: FavoritesManager
     private val viewModel: DiscoveredViewModel by viewModels(ownerProducer = { this })
     private var pageCount = 1
@@ -47,7 +39,7 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DiscoveredLayoutBinding.inflate(inflater, container, false)
+        binding = FragmentDiscoveredBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -92,6 +84,9 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
             }
+            binding.toolbar.setNavigationOnClickListener {
+                findNavController().navigate(R.id.action_discoveredFragment_to_navigation_discover)
+            }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     pageCount++
@@ -121,15 +116,13 @@ class DiscoveredFragment : Fragment(R.layout.discovered_layout) {
 
 
 
-
-
-
     private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_ID, id)
             putInt(BundleKeys.position, position)
+            putInt(BundleKeys.ACTION_ID, 3)
         }
 
         val destinationFragment = DetailMovieFragment()

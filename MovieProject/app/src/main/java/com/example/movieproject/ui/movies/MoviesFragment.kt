@@ -2,6 +2,7 @@ package com.example.movieproject.ui.movies
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -54,11 +55,15 @@ class MoviesFragment : Fragment(){
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        super.onViewCreated(view, savedInstanceState)
         binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).text = "Popular Movies"
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
-        super.onViewCreated(view, savedInstanceState)
+
     }
+
+
 
 
     private fun initView(view: View){
@@ -108,6 +113,9 @@ class MoviesFragment : Fragment(){
         viewModel.updateLikedMovieIds()
         listenViewModel()
     }
+
+
+
     private fun listenViewModel() {
         viewModel.apply {
             liveDataMovieList.observe(viewLifecycleOwner) {
@@ -207,6 +215,10 @@ class MoviesFragment : Fragment(){
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_ID, id)
             putInt(BundleKeys.position, position)
+            putInt(BundleKeys.ACTION_ID, 1)
+            putParcelable(BundleKeys.SAVED_SUPER_STATE,
+                binding.recycler.layoutManager?.onSaveInstanceState()
+            )
         }
 
         viewModel.setLiveDataMovieList(movieList)
@@ -214,6 +226,7 @@ class MoviesFragment : Fragment(){
         destinationFragment.arguments = bundle
         findNavController().navigate(R.id.action_detail, bundle) // R.id.action_detail
     }
+
 
     private fun heartButtonClicked(
         position: Int,

@@ -27,7 +27,7 @@
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_watchlist"
+        android:id="@+id/navigation_discover"
         android:name="com.example.movieproject.ui.discover.DiscoverFragment"
         tools:layout="@layout/fragment_discover" >
     <action
@@ -39,14 +39,27 @@
         android:id="@+id/detailMovieFragment"
         android:name="com.example.movieproject.ui.moviedetail.DetailMovieFragment"
         android:label="DetailMovieFragment"
-        tools:layout="@layout/fragment_detail"/>
+        tools:layout="@layout/fragment_detail">
+        <action
+            android:id="@+id/action_detailMovieFragment_to_navigation_favorites"
+            app:destination="@id/navigation_favorites" />
+        <action
+            android:id="@+id/action_detailMovieFragment_to_discoveredFragment"
+            app:destination="@id/discoveredFragment" />
+        <action
+            android:id="@+id/action_detailMovieFragment_to_navigation_movies"
+            app:destination="@id/navigation_movies" />
+    </fragment>
     <fragment
         android:id="@+id/discoveredFragment"
-        android:name="com.example.movieproject.ui.favorites.DiscoveredFragment"
+        android:name="com.example.movieproject.ui.discovered.DiscoveredFragment"
         android:label="DiscoveredFragment" >
 
     <action
         android:id="@+id/action_detail"
         app:destination="@id/detailMovieFragment" />
+        <action
+            android:id="@+id/action_discoveredFragment_to_navigation_discover"
+            app:destination="@id/navigation_discover" />
     </fragment>
 </navigation>
