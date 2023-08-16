@@ -10,7 +10,8 @@
 
     <item
         android:id="@+id/navigation_favorites"
-        android:icon="@drawable/heart_shape_grey"
+        android:icon="@drawable/heart_shape_outlined"
+        android:iconTint="@color/colorPrimaryDark"
         android:title="Favorites" />
 
     <item

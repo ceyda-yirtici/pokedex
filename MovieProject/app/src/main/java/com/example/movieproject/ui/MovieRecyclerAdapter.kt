@@ -17,6 +17,9 @@ import androidx.core.view.marginEnd
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.movieproject.R
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.utils.BundleKeys
@@ -26,7 +29,11 @@ import java.util.Locale
 class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
     private var movieList: MutableList<MovieDetail> = mutableListOf()
-    companion object {private var genreMapper : HashMap<Int, String> = HashMap()}
+    companion object { private var genreMapper : HashMap<Int, String> = HashMap()
+        fun sendGenreList(it: HashMap<Int, String>) {
+            genreMapper = it
+        }
+    }
     private var likedMovieIds: List<Int> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var onBottomReachedListener: OnBottomReachedListener
@@ -58,7 +65,6 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 movieDetail.heart_tag = "filled"
             }
             movieList = item
-            Log.d("upp", movieList.toString())
             notifyDataSetChanged()
         }
     }
@@ -71,7 +77,6 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
             item.let {
                 movieList = updateLikedStatusInMovieList(item)
             }
-            Log.d("upp", movieList.toString())
             notifyDataSetChanged()
         }
     }
@@ -117,13 +122,16 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 val date: TextView = itemView.findViewById(R.id.release_date)
                 val vote: TextView = itemView.findViewById(R.id.vote_text)
 
-                Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path).into(photo)
+                Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path)
+                    .apply(RequestOptions().transform(CenterCrop(), RoundedCorners(30)))
+                    .placeholder(R.drawable.baseline_photo_24) // drawable as a placeholder
+                    .error(R.drawable.baseline_photo_24) //  drawable if an error occurs
+                    .into(photo)
                 movie.text = detail.title
                 movie_desc.text = detail.overview
                 if (detail.release_date.isNotEmpty())
                     date.text = detail.release_date.subSequence(0, 4)
                 else date.text = "invalid"
-
                 val formattedVote = String.format(Locale.US, "%.1f", detail.vote)
                 vote.text = formattedVote
             }
@@ -133,6 +141,9 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 val photo: ImageView = itemView.findViewById(R.id.photoGrid)
 
                 Glide.with(photo).load(BundleKeys.baseImageUrl + detail.poster_path)
+                    .apply(RequestOptions().transform(CenterCrop(), RoundedCorners(30)))
+                    .placeholder(R.drawable.baseline_photo_24) // drawable as a placeholder
+                    .error(R.drawable.baseline_photo_24) //  drawable if an error occurs
                     .into(photo)
                 movie.text = detail.title
             }
@@ -168,11 +179,10 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
             if (movieList.isNotEmpty() && position == movieList.size - 1) {
                 onBottomReachedListener.onBottomReached(position)
             }
-
             if (viewMovieType) {
                 val genreNamesOfTheMovies = arrayListOf<String>()
-                if (genreMapper != emptyMap<Int, String>()) {
 
+                if(movieList[position].genres.isNullOrEmpty())
                     for (genreId in movieList[position].genre_ids) {
 
                         val genreName = genreMapper[genreId]
@@ -180,25 +190,16 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                             genreNamesOfTheMovies.add(genreName)
                         }
                     }
-                } else genreNamesOfTheMovies.addAll(movieList[position].genres.map { it.genre_name })
-
-
+                else movieList[position].genres?.let { genreNamesOfTheMovies.addAll(it.map { it.genre_name }) }
                 decideAddingGenreView(holder, genreNamesOfTheMovies)
             }
         }
         catch (e: NullPointerException) {
             // Handle the exception
             Log.e("NullPointerException", "Caught: ${e.message}")
-            // You can implement your own error handling here
         }
 
 
-    }
-    fun sendGenreList(it: HashMap<Int, String>) {
-        handler.post {
-            genreMapper = it
-            notifyDataSetChanged()
-        }
     }
     private fun convertPixelsToDp(px: Int, context: Context): Int {
         return (px / context.resources.displayMetrics.density).toInt()

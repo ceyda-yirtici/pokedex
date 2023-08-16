@@ -120,7 +120,7 @@ class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
         val bundle = Bundle().apply {
-            putInt(BundleKeys.REQUEST_ID, id)
+            putInt(BundleKeys.REQUEST_MOVIE_ID, id)
             putInt(BundleKeys.position, position)
             putInt(BundleKeys.ACTION_ID, 3)
         }

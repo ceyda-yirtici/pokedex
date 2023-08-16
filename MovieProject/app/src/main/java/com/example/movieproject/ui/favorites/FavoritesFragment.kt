@@ -5,25 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.room.AppDatabaseProvider
-import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
-import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -85,6 +79,11 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 binding.loading.visibility = if (it) View.VISIBLE else View.GONE
                 binding.recycler.visibility = if (it) View.GONE else View.VISIBLE
             }
+            binding.swiperefresh.setOnRefreshListener {
+                viewModel.createList()
+                binding.swiperefresh.isRefreshing  = false
+                viewModel.displayGroup()
+            }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     viewModel.displayGroup()
@@ -114,7 +113,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
         val bundle = Bundle().apply {
-            putInt(BundleKeys.REQUEST_ID, id)
+            putInt(BundleKeys.REQUEST_MOVIE_ID, id)
             putInt(BundleKeys.position, position)
             putInt(BundleKeys.ACTION_ID, 2)
         }

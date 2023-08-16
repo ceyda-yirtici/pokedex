@@ -4,19 +4,24 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.Light">
         <item name="android:windowFullscreen">true</item>
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/material_color_blue_grey_300</item>
+        <item name="colorPrimary">@color/material_color_teal_A400</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/material_color_blue_grey_500</item>
         <item name="android:windowBackground">@color/White_100</item>
 
 
+        <item name="toolbarNavigationButtonStyle">@style/Toolbar.NavigationButton</item>
     </style>
 
     <style name="Toolbar.NavigationButton" parent="Widget.AppCompat.Toolbar.Button.Navigation">
-        <item name="android:tint">@color/colorAccent</item>
+        <item name="android:tint">@color/colorPrimaryDark</item>
+        <item name="android:background">@drawable/circle_background</item>
+
     </style>
 
     <style name="AppTheme.Toolbar" parent="Widget.AppCompat.Toolbar">
         <item name="android:background">@color/White_100</item>
+
+
     </style>
 </resources>

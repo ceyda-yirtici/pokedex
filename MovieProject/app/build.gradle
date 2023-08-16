@@ -66,6 +66,8 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:2.47"
     implementation "androidx.fragment:fragment-ktx:1.6.1"
 
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+
     // ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     // LiveData

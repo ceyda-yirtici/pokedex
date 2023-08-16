@@ -41,8 +41,6 @@ class FavoritesViewModel @Inject constructor(
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
         createList()
-
-
     }
     fun getMovieDao(): MovieDao {
         return movieDao

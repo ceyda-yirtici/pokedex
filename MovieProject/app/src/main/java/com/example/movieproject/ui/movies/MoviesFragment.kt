@@ -2,13 +2,11 @@ package com.example.movieproject.ui.movies
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -17,16 +15,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentMoviesBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.utils.BundleKeys
-import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.MovieRecyclerAdapter
-import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -113,7 +108,11 @@ class MoviesFragment : Fragment(){
         viewModel.updateLikedMovieIds()
         listenViewModel()
     }
-
+    override fun onResume(){
+        super.onResume()
+        viewModel.updateLikedMovieIds()
+        listenViewModel()
+    }
 
 
     private fun listenViewModel() {
@@ -122,7 +121,7 @@ class MoviesFragment : Fragment(){
                 movieRecyclerAdapter.updateMovieList(it)
             }
             liveDataGenreList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.sendGenreList(it)
+                MovieRecyclerAdapter.sendGenreList(it)
             }
             liveDataViewType.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.updateViewType(listViewType)
@@ -134,7 +133,11 @@ class MoviesFragment : Fragment(){
             liveDataLikedMovieIds.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.setLikedMovieIds(it)
             }
-
+            binding.swiperefresh.setOnRefreshListener {
+                setUpListComponents()
+                binding.swiperefresh.isRefreshing  = false
+                viewModel.displayGroup(pageCount)
+            }
             movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     Log.e("initview", "you reached end")
@@ -213,7 +216,7 @@ class MoviesFragment : Fragment(){
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
         val bundle = Bundle().apply {
-            putInt(BundleKeys.REQUEST_ID, id)
+            putInt(BundleKeys.REQUEST_MOVIE_ID, id)
             putInt(BundleKeys.position, position)
             putInt(BundleKeys.ACTION_ID, 1)
             putParcelable(BundleKeys.SAVED_SUPER_STATE,

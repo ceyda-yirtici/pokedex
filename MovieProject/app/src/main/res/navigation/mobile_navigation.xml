@@ -50,6 +50,7 @@
             android:id="@+id/action_detailMovieFragment_to_navigation_movies"
             app:destination="@id/navigation_movies" />
     </fragment>
+
     <fragment
         android:id="@+id/discoveredFragment"
         android:name="com.example.movieproject.ui.discovered.DiscoveredFragment"
@@ -61,5 +62,13 @@
         <action
             android:id="@+id/action_discoveredFragment_to_navigation_discover"
             app:destination="@id/navigation_discover" />
+
+        <action
+            android:id="@+id/action_cast"
+            app:destination="@id/castFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/castFragment"
+        android:name="com.example.movieproject.ui.cast.CastFragment"
+        android:label="CastFragment" />
 </navigation>

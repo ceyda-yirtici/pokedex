@@ -1,4 +1,4 @@
-package com.example.movieproject.ui.moviedetail
+package com.example.movieproject.ui.cast
 
 import android.app.Application
 import android.util.Log
@@ -22,29 +22,19 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class DetailsViewModel @Inject constructor(
+class CastViewModel @Inject constructor(
     private val movieService: MovieService, application: Application
 )
     : ViewModel() {
-
-    private val movieDao: MovieDao
-
 
     private val _liveDataMovie = MutableLiveData<MovieDetail>()
     val liveDataMovie: LiveData<MovieDetail> = _liveDataMovie
 
 
-    private val _liveDataCast = MutableLiveData<MutableList<CastPerson>>(mutableListOf())
-    val liveDataCast: LiveData<MutableList<CastPerson>> = _liveDataCast
+    private val _liveDataCast = MutableLiveData<CastPerson>()
+    val liveDataCast: LiveData<CastPerson> = _liveDataCast
 
 
-    init {
-        val database = AppDatabaseProvider.getAppDatabase(application)
-        movieDao = database.movieDao()
-    }
-    fun getMovieDao(): MovieDao {
-        return movieDao
-    }
     private fun callMovieRepos(id:Int) {
 
 
@@ -61,8 +51,8 @@ class DetailsViewModel @Inject constructor(
     private fun callCastRepos(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val credit = movieService.getCredit(id, BundleKeys.API_KEY)
-                _liveDataCast.postValue(credit.cast as MutableList<CastPerson>?)
+                val person = movieService.getPerson(id, BundleKeys.API_KEY)
+                _liveDataCast.postValue(person)
             } catch (exception: Exception) {
                 Log.e("call cast", "Exception: ${exception.message}")
             }
@@ -75,10 +65,10 @@ class DetailsViewModel @Inject constructor(
 
 
     fun displayMovie(id:Int) {
-            callMovieRepos(id)
+        callMovieRepos(id)
     }
     fun displayCast(id:Int) {
-            callCastRepos(id)
+        callCastRepos(id)
     }
 
 
