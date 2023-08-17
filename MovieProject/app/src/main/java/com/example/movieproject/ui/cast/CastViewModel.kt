@@ -27,9 +27,10 @@ class CastViewModel @Inject constructor(
 )
     : ViewModel() {
 
-    private val _liveDataMovie = MutableLiveData<MovieDetail>()
-    val liveDataMovie: LiveData<MovieDetail> = _liveDataMovie
+    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
+    val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
+    val liveDataLoading = MutableLiveData<Boolean>()
 
     private val _liveDataCast = MutableLiveData<CastPerson>()
     val liveDataCast: LiveData<CastPerson> = _liveDataCast
@@ -39,23 +40,26 @@ class CastViewModel @Inject constructor(
 
 
         viewModelScope.launch(Dispatchers.IO) {
-            val movie = try {
-                movieService.getMovie(id,BundleKeys.API_KEY)
+             try {
+                 val credit =movieService.getPersonMovieCredits(id,BundleKeys.API_KEY)
+                 val currentList = credit.castMovies
+                 _liveDataMovieList.postValue(currentList)
+
             }
             catch  (exception: Exception) {
-                ""
+                _liveDataMovieList.postValue(mutableListOf())
             }
-            _liveDataMovie.postValue(movie as MovieDetail?)
         }
     }
     private fun callCastRepos(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val person = movieService.getPerson(id, BundleKeys.API_KEY)
-                _liveDataCast.postValue(person)
+            val person = try {
+                 movieService.getPerson(id, BundleKeys.API_KEY)
             } catch (exception: Exception) {
                 Log.e("call cast", "Exception: ${exception.message}")
             }
+            liveDataLoading.postValue(false)
+            _liveDataCast.postValue(person as CastPerson?)
         }
     }
 

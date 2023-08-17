@@ -29,8 +29,8 @@ class MoviesViewModel @Inject constructor(
     private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
     val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
-    private val _liveDataViewType = MutableLiveData<Boolean>()
-    val liveDataViewType: LiveData<Boolean> = _liveDataViewType
+    private val _liveDataViewType = MutableLiveData<Int>()
+    val liveDataViewType: LiveData<Int> = _liveDataViewType
 
     val liveDataLoading = MutableLiveData<Boolean>()
 
@@ -82,7 +82,7 @@ class MoviesViewModel @Inject constructor(
 
                 _liveDataMovieList.postValue(updatedList)
                 liveDataLoading.postValue(false)
-                _liveDataViewType.postValue(true)
+                _liveDataViewType.postValue(1)
             } catch (exception: Exception) {
                 // Handle exception
             }
@@ -99,7 +99,7 @@ class MoviesViewModel @Inject constructor(
 
                 _liveDataMovieList.postValue(updatedList)
                 liveDataLoading.postValue(false)
-                _liveDataViewType.postValue(true)
+                _liveDataViewType.postValue(1)
             } catch (exception: Exception) {
                 // Handle exception
             }
@@ -131,6 +131,11 @@ class MoviesViewModel @Inject constructor(
 
     fun getMovieDao(): MovieDao {
         return movieDao
+
+    }
+
+    fun setViewType(listViewType: Int) {
+        _liveDataViewType.postValue(listViewType)
 
     }
 

@@ -1,5 +1,6 @@
 package com.example.movieproject.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
 import android.os.Handler
@@ -36,9 +37,9 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     }
     private var likedMovieIds: List<Int> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
-    private lateinit var onBottomReachedListener: OnBottomReachedListener
+    private var onBottomReachedListener: OnBottomReachedListener? = null
     private lateinit var listener: OnClickListener
-    private var viewMovieType: Boolean = true
+    private var viewMovieType: Int = 1
 
     interface OnClickListener {
         fun onMovieClick(position: Int,  movieView: View, movieList: MutableList<MovieDetail> )
@@ -59,7 +60,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     fun setOnBottomReachedListener(onBottomReachedListener: OnBottomReachedListener) {
         this.onBottomReachedListener = onBottomReachedListener
     }
-    fun updateList(item: MutableList<MovieDetail>) {
+    fun updateFavList(item: MutableList<MovieDetail>) {
         handler.post {
             item.forEach { movieDetail ->
                 movieDetail.heart_tag = "filled"
@@ -68,7 +69,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
             notifyDataSetChanged()
         }
     }
-    fun updateViewType(viewType: Boolean){
+    fun updateViewType(viewType: Int){
         viewMovieType = viewType
     }
 
@@ -89,32 +90,39 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         for (movie in item) {
             movie.heart_tag = if (likedMovieIds.contains(movie.id)) "filled" else "outline"
         }
-
         return item
     }
 
-    inner class MovieViewHolder(itemView: View, listener: OnClickListener, viewMovieType: Boolean) : ViewHolder(itemView) {
+    inner class MovieViewHolder(itemView: View, listener: OnClickListener, viewMovieType: Int) : ViewHolder(itemView) {
 
         private var  heartButton: ImageButton
 
         init {
 
-            heartButton = if (viewMovieType) itemView.findViewById(R.id.heart_in_detail)
-                    else itemView.findViewById(R.id.heart_in_grid)
+            if (viewMovieType == 1)
+                heartButton = itemView.findViewById(R.id.heart_in_detail)
+            else
+                heartButton = itemView.findViewById(R.id.heart_in_grid)
+            if(viewMovieType == 3) heartButton.visibility = View.GONE
+
+
+
 
             itemView.setOnClickListener {
                 listener.onMovieClick(adapterPosition,itemView, movieList)
             }
+
             heartButton.setOnClickListener {
                 val position = adapterPosition
                 listener.onHeartButtonClick(position, itemView, movieList, heartButton)
             }
 
         }
+        @SuppressLint("SetTextI18n")
         fun bind(detail: MovieDetail) {
             val heartResource: Int
 
-            if(viewMovieType) {
+            if(viewMovieType == 1) {
                 val movie: TextView = itemView.findViewById(R.id.movie)
                 val photo: ImageView = itemView.findViewById(R.id.photo)
                 val movie_desc: TextView = itemView.findViewById(R.id.movie_description)
@@ -161,7 +169,7 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val inflater = LayoutInflater.from(parent.context)
 
-        return if(viewMovieType) {
+        return if(viewMovieType == 1) {
             val itemView = inflater.inflate(R.layout.item_movie, parent, false)
             MovieViewHolder(itemView, listener, viewMovieType)
         } else{
@@ -177,9 +185,9 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
             holder.bind(movieList[position])
 
             if (movieList.isNotEmpty() && position == movieList.size - 1) {
-                onBottomReachedListener.onBottomReached(position)
+                onBottomReachedListener?.onBottomReached(position)
             }
-            if (viewMovieType) {
+            if (viewMovieType == 1) {
                 val genreNamesOfTheMovies = arrayListOf<String>()
 
                 if(movieList[position].genres.isNullOrEmpty())

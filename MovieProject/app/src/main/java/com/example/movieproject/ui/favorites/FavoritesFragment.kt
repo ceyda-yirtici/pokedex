@@ -73,7 +73,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     private fun listenViewModel() {
         viewModel.apply {
             liveDataFavoritesList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.updateList(it)
+                movieRecyclerAdapter.updateFavList(it)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
                 binding.loading.visibility = if (it) View.VISIBLE else View.GONE

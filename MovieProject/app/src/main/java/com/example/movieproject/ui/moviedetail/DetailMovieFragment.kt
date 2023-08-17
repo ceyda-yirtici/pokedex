@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,15 +17,21 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.example.movieproject.R
+import com.example.movieproject.databinding.ActivityMainBinding
 import com.example.movieproject.databinding.FragmentDetailBinding
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.FavoritesManager
+import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.ui.cast.CastFragment
 import com.example.movieproject.utils.BundleKeys
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.chip.ChipGroup
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +44,9 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     private lateinit var favoritesManager: FavoritesManager
     private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
     private var castRecyclerAdapter: CastRecyclerAdapter = CastRecyclerAdapter()
-    private lateinit var movieDetail:MovieDetail
+    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
+    private var pageCount = 1
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,21 +59,24 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         super.onViewCreated(view, savedInstanceState)
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
-        listenViewModel()
-    }
-    override fun onStart(){
-        super.onStart()
-
         val id : Int = requireArguments().getInt(BundleKeys.REQUEST_MOVIE_ID)
         viewModel.displayMovie(id)
         viewModel.displayCast(id)
+        viewModel.displayRecs(id, pageCount)
         listenViewModel()
     }
+
     private fun initView(view: View) {
         view.apply {
             val layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            binding.recycler.layoutManager = layoutManager
-            binding.recycler.adapter = castRecyclerAdapter
+            binding.recyclerCast.layoutManager = layoutManager
+            binding.recyclerCast.adapter = castRecyclerAdapter
+            val layoutManager2 = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            binding.recyclerMovies.layoutManager = layoutManager2
+            binding.recyclerMovies.adapter = movieRecyclerAdapter
+            movieRecyclerAdapter.updateViewType(3)
+
+
         }
     }
 
@@ -73,10 +86,22 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         viewModel.apply {
             liveDataMovie.observe(viewLifecycleOwner) {
                 updateMovie(it)
-                movieDetail = it
                 binding.heartInDetail.setOnClickListener(
-                     onHeartButtonClick(it)
+                     heartButtonClicked(it)
                 )
+
+            }
+            liveDataMovieList.observe(viewLifecycleOwner) {
+                movieRecyclerAdapter.updateMovieList(it)
+            }
+            liveDataLoading.observe(viewLifecycleOwner) {
+                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
+                for (index in 0 until binding.content.childCount) {
+                    val childView = binding.content.getChildAt(index)
+                    childView.visibility = if (it) View.GONE else View.VISIBLE
+                }
+
+
 
             }
             castRecyclerAdapter.setOnClickListener (object: CastRecyclerAdapter.OnClickListener{
@@ -89,15 +114,54 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
                 }
 
             })
+            movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
+                override fun onBottomReached(position: Int) {
+                    Log.e("initview", "you reached end")
+                    pageCount++
+                    liveDataMovie.observe(viewLifecycleOwner){
+                        viewModel.displayRecs(it.id, pageCount)
+                    }
+
+                }
+            })
+            movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
+                override fun onMovieClick(position: Int, movieView : View,  movieList: MutableList<MovieDetail>) {
+                    movieClicked(position, movieView, movieList)
+                }
+
+                override fun onHeartButtonClick(
+                    adapterPosition: Int,
+                    movieView: View,
+                    movieList: MutableList<MovieDetail>,
+                    heartButton: ImageButton
+                ) {
+                    return
+                }
+
+            })
             liveDataCast.observe(viewLifecycleOwner)  {
                 castRecyclerAdapter.updateList(it)
             }
-            binding.toolbar.setNavigationOnClickListener {
-                requireActivity().onBackPressedDispatcher.onBackPressed()
-            }
         }
+        binding.toolbar.setNavigationOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
 
 
+        }
+    }
+
+    private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
+        val clickedMovie = movieList[position]
+        val id = clickedMovie.id
+        val bundle = Bundle().apply {
+            putInt(BundleKeys.REQUEST_MOVIE_ID, id)
+            putInt(BundleKeys.position, position)
+            putInt(BundleKeys.ACTION_ID, 5)
+
+        }
+        val destinationFragment = DetailMovieFragment()
+        destinationFragment.arguments = bundle
+        findNavController().navigate(R.id.action_detail, bundle) // R.id.action_detail
     }
 
     private fun navigateCast(position: Int, itemList: MutableList<CastPerson>) {
@@ -106,7 +170,9 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_PERSON_ID, id)
             putInt(BundleKeys.position, position)
-            putString(BundleKeys.PHOTO_URL, movieDetail.backdrop_path)
+            viewModel.liveDataMovie.observe(viewLifecycleOwner) {
+                putString(BundleKeys.PHOTO_URL,it.backdrop_path)
+            }
         }
 
         val destinationFragment = CastFragment()
@@ -115,7 +181,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
     }
 
 
-    private fun onHeartButtonClick(movieDetail: MovieDetail): View.OnClickListener {
+    private fun heartButtonClicked(movieDetail: MovieDetail): View.OnClickListener {
         return View.OnClickListener {
             val heartButton = binding.heartInDetail
 
@@ -151,7 +217,8 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
 
         binding.title.text = it.title
         binding.movieDescription.text = it.overview
-        binding.releaseDate.text = it.release_date.subSequence(0,4)
+        if (it.release_date.isNotEmpty())
+            binding.releaseDate.text = it.release_date.subSequence(0,4)
         binding.voteText.text = it.vote.toString().subSequence(0,3)
         viewLifecycleOwner.lifecycleScope.launch {
             val count = withContext(Dispatchers.IO) {
@@ -166,30 +233,10 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             }
             val photo = binding.detailPhoto
             val photoUrl = it.backdrop_path
-            Glide.with(this@DetailMovieFragment).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).
-            listener(object : RequestListener<Drawable> {
-                override fun onLoadFailed(p0: GlideException?, p1: Any?, p2: Target<Drawable>?, p3: Boolean): Boolean {
-                    Log.e("glide", "onLoadFailed")
-                    return false
-                }
-                override fun onResourceReady(p0: Drawable?, p1: Any?, p2: Target<Drawable>?, p3: DataSource?, p4: Boolean): Boolean {
-                    Log.d("glide", "OnResourceReady")
-                    binding.detailPhoto.visibility = View.VISIBLE
-                    binding.releaseDate.visibility = View.VISIBLE
-                    binding.movieDescription.visibility = View.VISIBLE
-                    binding.title.visibility = View.VISIBLE
-                    binding.heartInDetail.visibility =View.VISIBLE
-                    binding.star.visibility = View.VISIBLE
-                    binding.voteText.visibility =  View.VISIBLE
-                    binding.recycler.visibility = View.VISIBLE
-                    binding.genreContainer.visibility = View.VISIBLE
-                    binding.cast.visibility = View.VISIBLE
-                    binding.loading.visibility = View.GONE
-                    binding.toolbar.visibility = View.VISIBLE
-                    return false
-                }
-            })
-                .into(photo)
+            Glide.with(this@DetailMovieFragment).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl)
+                .placeholder(R.drawable.baseline_photo_220dp) // drawable as a placeholder
+                .error(R.drawable.baseline_photo_220dp) //  drawable if an error occurs
+             .into(photo)
 
             val genreList : ArrayList<String> = arrayListOf()
             it.genres?.map {

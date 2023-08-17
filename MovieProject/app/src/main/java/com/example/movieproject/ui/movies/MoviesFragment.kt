@@ -36,7 +36,7 @@ class MoviesFragment : Fragment(){
     private val viewModel: MoviesViewModel by viewModels(ownerProducer = { this })
     private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
     private var heartResource: Int = R.drawable.heart_shape_grey
-    private var listViewType = true
+    private var listViewType = initialView
     private var userQuery = ""
 
 
@@ -52,7 +52,7 @@ class MoviesFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).text = "Popular Movies"
+        binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).text = toolbarText
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
 
@@ -65,7 +65,8 @@ class MoviesFragment : Fragment(){
         view.apply {
 
             binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).setOnClickListener {
-                listViewType = !listViewType
+                listViewType = if (listViewType == listView) gridView else listView
+                viewModel.setViewType(listViewType)
                 setupViewMode()
                 listenViewModel()
             }
@@ -80,16 +81,17 @@ class MoviesFragment : Fragment(){
     private fun setupViewMode() {
 
         var layoutManager: LinearLayoutManager? = null
-        if (!listViewType) {
+        if (listViewType == gridView) {
             binding.toolbar.findViewById<SearchView>(R.id.searchView).visibility = View.GONE
             binding.toolbar.findViewById<ImageButton>(R.id.gridOrList).setImageResource(R.drawable.ic_list_view)
             heartResource = R.drawable.heart_shape_grey
             val orientation = resources.configuration.orientation
-            var spanCount = 3
+            var spanCount : Int
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 // Device is in landscape mode
-                spanCount = 6
+                spanCount = spanCountLandscape
             }
+            else spanCount = spanCountPortrait
             layoutManager = GridLayoutManager(requireContext(), spanCount)
         } else {
             binding.toolbar.findViewById<SearchView>(R.id.searchView).visibility = View.VISIBLE
@@ -206,7 +208,7 @@ class MoviesFragment : Fragment(){
     }
 
     private fun setUpListComponents() {
-        listViewType = true
+        listViewType = initialView
         viewModel.setLiveDataMovieList(mutableListOf())
         pageCount = 1
         viewModel.setPageNumber(pageCount)
@@ -215,16 +217,13 @@ class MoviesFragment : Fragment(){
     private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
+
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_MOVIE_ID, id)
             putInt(BundleKeys.position, position)
             putInt(BundleKeys.ACTION_ID, 1)
-            putParcelable(BundleKeys.SAVED_SUPER_STATE,
-                binding.recycler.layoutManager?.onSaveInstanceState()
-            )
-        }
 
-        viewModel.setLiveDataMovieList(movieList)
+        }
         val destinationFragment = DetailMovieFragment()
         destinationFragment.arguments = bundle
         findNavController().navigate(R.id.action_detail, bundle) // R.id.action_detail
@@ -265,6 +264,16 @@ class MoviesFragment : Fragment(){
         }
 
 
+    }
+
+    companion object
+    {
+        const val initialView = 1
+        const val listView = 1
+        const val gridView = 2
+        const val toolbarText = "Popular Movies"
+        const val spanCountLandscape = 6
+        const val spanCountPortrait = 3
     }
 
 

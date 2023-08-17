@@ -10,9 +10,9 @@
         android:name="com.example.movieproject.ui.movies.MoviesFragment"
         tools:layout="@layout/fragment_movies">
 
-    <action
-        android:id="@+id/action_detail"
-        app:destination="@id/detailMovieFragment" />
+        <action
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
 
     </fragment>
 
@@ -21,18 +21,18 @@
         android:name="com.example.movieproject.ui.favorites.FavoritesFragment"
         tools:layout="@layout/fragment_favorites">
 
-    <action
-        android:id="@+id/action_detail"
-        app:destination="@id/detailMovieFragment" />
+        <action
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_discover"
         android:name="com.example.movieproject.ui.discover.DiscoverFragment"
         tools:layout="@layout/fragment_discover" >
-    <action
-        android:id="@+id/action_discovered"
-        app:destination="@id/discoveredFragment" />
+        <action
+            android:id="@+id/action_discovered"
+            app:destination="@id/discoveredFragment" />
     </fragment>
 
     <fragment
@@ -40,15 +40,17 @@
         android:name="com.example.movieproject.ui.moviedetail.DetailMovieFragment"
         android:label="DetailMovieFragment"
         tools:layout="@layout/fragment_detail">
+
         <action
-            android:id="@+id/action_detailMovieFragment_to_navigation_favorites"
-            app:destination="@id/navigation_favorites" />
+            android:id="@+id/action_cast"
+            app:destination="@id/castFragment" />
+
+
         <action
-            android:id="@+id/action_detailMovieFragment_to_discoveredFragment"
-            app:destination="@id/discoveredFragment" />
-        <action
-            android:id="@+id/action_detailMovieFragment_to_navigation_movies"
-            app:destination="@id/navigation_movies" />
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
+
+
     </fragment>
 
     <fragment
@@ -56,19 +58,25 @@
         android:name="com.example.movieproject.ui.discovered.DiscoveredFragment"
         android:label="DiscoveredFragment" >
 
-    <action
-        android:id="@+id/action_detail"
-        app:destination="@id/detailMovieFragment" />
         <action
             android:id="@+id/action_discoveredFragment_to_navigation_discover"
             app:destination="@id/navigation_discover" />
 
         <action
-            android:id="@+id/action_cast"
-            app:destination="@id/castFragment" />
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
+
+
     </fragment>
     <fragment
         android:id="@+id/castFragment"
         android:name="com.example.movieproject.ui.cast.CastFragment"
-        android:label="CastFragment" />
+        android:label="CastFragment"
+        tools:layout="@layout/fragment_cast">
+
+    <action
+        android:id="@+id/action_detail"
+        app:destination="@id/detailMovieFragment" />
+    </fragment>
+
 </navigation>

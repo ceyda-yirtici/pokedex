@@ -6,6 +6,7 @@ import com.example.movieproject.model.MovieCredit
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.model.MovieGenre
 import com.example.movieproject.model.MovieList
+import com.example.movieproject.model.PersonCredit
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -20,6 +21,9 @@ interface MovieService {
 
     @GET("person/{person_id}")
     suspend fun getPerson(@Path("person_id") id: Int, @Query("api_key") api_key:String) : CastPerson
+
+    @GET("person/{person_id}/movie_credits")
+    suspend fun getPersonMovieCredits(@Path("person_id") id: Int, @Query("api_key") api_key:String) : PersonCredit
 
     @GET("search/movie")
     suspend fun getSearchList(@Query("api_key") api_key:String, @Query("page") page:Int, @Query("query") query: String) : MovieList

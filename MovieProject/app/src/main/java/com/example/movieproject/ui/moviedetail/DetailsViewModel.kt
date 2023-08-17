@@ -33,9 +33,14 @@ class DetailsViewModel @Inject constructor(
     private val _liveDataMovie = MutableLiveData<MovieDetail>()
     val liveDataMovie: LiveData<MovieDetail> = _liveDataMovie
 
+    val liveDataLoading = MutableLiveData<Boolean>()
 
     private val _liveDataCast = MutableLiveData<MutableList<CastPerson>>(mutableListOf())
     val liveDataCast: LiveData<MutableList<CastPerson>> = _liveDataCast
+
+    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
+    val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
+
 
 
     init {
@@ -55,6 +60,7 @@ class DetailsViewModel @Inject constructor(
             catch  (exception: Exception) {
                 ""
             }
+            liveDataLoading.postValue(false)
             _liveDataMovie.postValue(movie as MovieDetail?)
         }
     }
@@ -70,10 +76,27 @@ class DetailsViewModel @Inject constructor(
     }
 
 
+    private fun callRecRepos(id: Int, page:Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val newMovieList = movieService.getRecommendations(id, BundleKeys.API_KEY, page)
+                val currentList = _liveDataMovieList.value ?: emptyList()
+                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
+                    addAll(newMovieList.results)
+                }
+
+                _liveDataMovieList.postValue(updatedList)
+            } catch (exception: Exception) {
+                // Handle exception
+            }
+        }
+    }
 
 
 
-
+    fun displayRecs(id:Int, page:Int) {
+        callRecRepos(id, page)
+    }
     fun displayMovie(id:Int) {
             callMovieRepos(id)
     }
