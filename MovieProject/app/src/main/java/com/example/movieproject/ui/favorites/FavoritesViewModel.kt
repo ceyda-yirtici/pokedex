@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val movieService: MovieService, application: Application
@@ -30,6 +31,7 @@ class FavoritesViewModel @Inject constructor(
     private val movieDao: MovieDao
 
     val liveDataLoading = MutableLiveData<Boolean>()
+    val liveDataDaoState =  MutableLiveData<Boolean>()
 
     private val _liveDataFavoritesList = MutableLiveData<MutableList<MovieDetail>>()
     val liveDataFavoritesList: LiveData<MutableList<MovieDetail>> = _liveDataFavoritesList
@@ -40,6 +42,7 @@ class FavoritesViewModel @Inject constructor(
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
+        checkDaoEmpty()
         createList()
     }
     fun getMovieDao(): MovieDao {
@@ -64,6 +67,15 @@ class FavoritesViewModel @Inject constructor(
         }
     }
 
+    fun checkDaoEmpty() {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (movieDao.getAll().isEmpty())
+            liveDataDaoState.postValue(false)
+            else      liveDataDaoState.postValue(true)
+
+        }
+    }
+
 
     fun setFavoritesList() {
         val favoritesList = liveDataFavoritesList.value ?: mutableListOf()
@@ -77,7 +89,7 @@ class FavoritesViewModel @Inject constructor(
     }
 
 
-     fun createList() {
+    fun createList() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val hashMap = HashMap<Int, Boolean>()
@@ -88,18 +100,20 @@ class FavoritesViewModel @Inject constructor(
                 Log.d("ids", databaseList.value.toString())
 
             }
+            checkDaoEmpty()
             setFavoritesList()
             displayGroup()
+
 
 
         }
     }
     fun displayGroup() {
-            val nextTenKeys = setList()
+        val nextTenKeys = setList()
 
-            if (nextTenKeys.isNotEmpty()) {
-                callMovieRepos(nextTenKeys)
-            }
+        if (nextTenKeys.isNotEmpty()) {
+            callMovieRepos(nextTenKeys)
+        }
 
     }
 
@@ -115,8 +129,3 @@ class FavoritesViewModel @Inject constructor(
         return nextTenKeys
     }
 }
-
-
-
-
-

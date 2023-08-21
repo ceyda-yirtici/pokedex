@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#00000000"
-        android:progressBackgroundTint="@color/White_100"
+        android:progressBackgroundTint="?attr/colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,7 +46,7 @@
             <ImageView
                 android:id="@+id/backdrop_cast_photo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:visibility="gone"
                 android:foreground="@drawable/gradient_foreground"
                 app:layout_constraintTop_toTopOf="parent"
@@ -59,9 +59,12 @@
                 android:layout_height="130dp"
                 android:visibility="gone"
                 app:layout_constraintTop_toTopOf="@id/backdrop_cast_photo"
+                android:background="@drawable/circle_24"
                 app:layout_constraintStart_toStartOf = "parent"
                 app:layout_constraintBottom_toBottomOf="@id/divider2"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintEnd_toEndOf="parent"
+
+                />
 
 
 
@@ -117,7 +120,7 @@
             <View
                 android:id="@+id/divider2"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"

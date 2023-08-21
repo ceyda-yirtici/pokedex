@@ -57,8 +57,8 @@ class CastFragment  : Fragment(R.layout.fragment_cast) {
         initView(view)
 
         val id : Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
-        viewModel.displayCast(id)
         viewModel.displayMovie(id)
+        viewModel.displayCast(id)
         listenViewModel()
     }
 
@@ -78,24 +78,17 @@ class CastFragment  : Fragment(R.layout.fragment_cast) {
             liveDataCast.observe(viewLifecycleOwner) {
                 updateCast(it)
             }
-            liveDataMovieList.observe(viewLifecycleOwner){
-                movieRecyclerAdapter.updateMovieList(it)
-            }
             liveDataLoading.observe(viewLifecycleOwner) {
                 binding.loading.visibility = if (it) View.VISIBLE else View.GONE
                 for (index in 0 until binding.content.childCount) {
                     val childView = binding.content.getChildAt(index)
                     childView.visibility = if (it) View.GONE else View.VISIBLE
                 }
-
-
-
             }
             movieRecyclerAdapter.setOnClickListener(object : MovieRecyclerAdapter.OnClickListener{
                 override fun onMovieClick(position: Int, movieView : View,  movieList: MutableList<MovieDetail>) {
                     movieClicked(position, movieView, movieList)
                 }
-
                 override fun onHeartButtonClick(
                     adapterPosition: Int,
                     movieView: View,
@@ -133,25 +126,36 @@ class CastFragment  : Fragment(R.layout.fragment_cast) {
     @SuppressLint("SetTextI18n")
     private fun updateCast(it: CastPerson) {
 
+        viewModel.liveDataMovieList.observe(viewLifecycleOwner) {
+            movieRecyclerAdapter.updateMovieList(it)
+            binding.movies.visibility =  if (it.size < 1) View.GONE else View.VISIBLE
+        }
 
-        val backdrop = binding.backdropCastPhoto
-        Glide.with(this@CastFragment).load(BundleKeys.baseImageUrlForOriginalSize + requireArguments().getString(BundleKeys.PHOTO_URL)).centerCrop()
-            .placeholder(R.drawable.baseline_photo_220dp) // drawable as a placeholder
-            .error(R.drawable.baseline_photo_220dp) //  drawable if an error occurs
-            .into(backdrop)
+        viewModel.liveDataBackDropMovie.observe(viewLifecycleOwner) {
+            val backdropURl = it.backdrop_path
+            val backdrop = binding.backdropCastPhoto
+            Glide.with(this@CastFragment).load(BundleKeys.baseImageUrlForOriginalSize + backdropURl).centerCrop()
+                .placeholder(R.drawable.baseline_photo_220dp) // drawable as a placeholder
+                .error(R.drawable.baseline_photo_220dp) //  drawable if an error occurs
+                .into(backdrop)
+        }
+
+
 
         val personalPhoto = binding.castPhoto
-        Glide.with(this@CastFragment).load(BundleKeys.baseImageUrl + it.photo_path)
-            .apply(RequestOptions().transform(CenterCrop(), RoundedCorners(100)))
-            .placeholder(R.drawable.baseline_photo_24) // drawable as a placeholder
-            .error(R.drawable.baseline_photo_24) //  drawable if an error occurs
+        Glide.with(this@CastFragment).load(BundleKeys.baseImageUrl + it.photo_path).circleCrop()
+            .placeholder(R.drawable.baseline_person_24) // drawable as a placeholder
+            .error(R.drawable.baseline_person_24) //  drawable if an error occurs
             .into(personalPhoto)
 
+
         binding.title.text = it.name
-        binding.biography.text = it.biography
-        binding.born.text = "BORN   " + it.birthday?.let { it1 -> dateConversion(it1) }
         binding.career.text = it.known_for_department
-        binding.from.text =  "FROM   " + it.place_of_birth
+        if (!it.biography.isNullOrEmpty()) binding.biography.text = it.biography else binding.biographyText.visibility = View.GONE
+        if (it.birthday != null)  binding.born.text = "BORN   " + it.birthday.let { it1 -> dateConversion(it1) } else binding.born.visibility = View.GONE
+        if (it.place_of_birth != null)  binding.from.text =  "FROM   " + it.place_of_birth
+
+
 
 
 

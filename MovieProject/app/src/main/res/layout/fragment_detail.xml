@@ -47,7 +47,7 @@
             <ImageView
                 android:id="@+id/detail_photo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:contentDescription="@string/moviephoto"
                 android:foreground="@drawable/gradient_foreground"
                 app:layout_constraintTop_toTopOf="parent"

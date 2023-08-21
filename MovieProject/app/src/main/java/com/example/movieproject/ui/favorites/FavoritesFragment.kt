@@ -43,6 +43,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = binding.toolbar.findViewById<TextView>(R.id.toolbarFavorites)
         toolbarTitle.text = "Favorite Movies"
+        viewModel.createList()
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
         listenViewModel()
@@ -51,8 +52,10 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     override fun onStart(){
         super.onStart()
         viewModel.createList()
+        listenViewModel()
 
     }
+
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
@@ -70,8 +73,13 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
 
 
+
     private fun listenViewModel() {
         viewModel.apply {
+
+            liveDataDaoState.observe(viewLifecycleOwner){
+                binding.placeholder.placeholderLayout.visibility = if (it)  View.GONE else View.VISIBLE
+            }
             liveDataFavoritesList.observe(viewLifecycleOwner) {
                 movieRecyclerAdapter.updateFavList(it)
             }

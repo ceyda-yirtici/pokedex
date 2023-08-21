@@ -86,13 +86,10 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         viewModel.apply {
             liveDataMovie.observe(viewLifecycleOwner) {
                 updateMovie(it)
+
                 binding.heartInDetail.setOnClickListener(
                      heartButtonClicked(it)
                 )
-
-            }
-            liveDataMovieList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.updateMovieList(it)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
                 binding.loading.visibility = if (it) View.VISIBLE else View.GONE
@@ -100,9 +97,6 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
                     val childView = binding.content.getChildAt(index)
                     childView.visibility = if (it) View.GONE else View.VISIBLE
                 }
-
-
-
             }
             castRecyclerAdapter.setOnClickListener (object: CastRecyclerAdapter.OnClickListener{
                 override fun onCastClick(
@@ -139,9 +133,6 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
                 }
 
             })
-            liveDataCast.observe(viewLifecycleOwner)  {
-                castRecyclerAdapter.updateList(it)
-            }
         }
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -217,6 +208,15 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
 
         binding.title.text = it.title
         binding.movieDescription.text = it.overview
+        viewModel.liveDataMovieList.observe(viewLifecycleOwner) {
+            movieRecyclerAdapter.updateMovieList(it)
+            binding.recommendations.visibility =  if (it.size < 1) View.GONE else View.VISIBLE
+        }
+        viewModel.liveDataCast.observe(viewLifecycleOwner)  {
+            castRecyclerAdapter.updateList(it)
+            binding.cast.visibility = if (it.size < 1) View.GONE else View.VISIBLE
+        }
+
         if (it.release_date.isNotEmpty())
             binding.releaseDate.text = it.release_date.subSequence(0,4)
         binding.voteText.text = it.vote.toString().subSequence(0,3)
@@ -233,7 +233,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             }
             val photo = binding.detailPhoto
             val photoUrl = it.backdrop_path
-            Glide.with(this@DetailMovieFragment).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl)
+            Glide.with(this@DetailMovieFragment).load(BundleKeys.baseImageUrlForOriginalSize + photoUrl).centerCrop()
                 .placeholder(R.drawable.baseline_photo_220dp) // drawable as a placeholder
                 .error(R.drawable.baseline_photo_220dp) //  drawable if an error occurs
              .into(photo)

@@ -85,13 +85,12 @@ class DiscoverFragment : Fragment() {
     }
 
     private fun onDiscoverButtonClicked() {
-        var ids: MutableList<Int> = mutableListOf()
+        var ids: String = ""
         viewModel.liveDataGenreList.observe(viewLifecycleOwner){
-            ids = it.filterValues { it in selectedChips }.keys.toMutableList()
+            ids = it.filterValues { it in selectedChips }.keys.toMutableList().joinToString(separator = ",")
         }
-        val resultString = ids.joinToString(separator = ",")
         val bundle = Bundle().apply {
-            putString(BundleKeys.REQUEST_DISCOVER, resultString)
+            putString(BundleKeys.REQUEST_DISCOVER, ids)
             putFloat(BundleKeys.MIN_VOTE, seekBarResult)
         }
 

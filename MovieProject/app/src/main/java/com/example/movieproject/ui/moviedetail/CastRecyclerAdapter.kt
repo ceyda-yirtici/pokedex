@@ -56,8 +56,8 @@ class CastRecyclerAdapter:  RecyclerView.Adapter<CastRecyclerAdapter.ViewHolder>
 
                 Glide.with(photo).load(BundleKeys.baseImageUrl + person.photo_path)
                     .apply(RequestOptions().transform(CenterCrop(), RoundedCorners(30)))
-                    .placeholder(R.drawable.baseline_photo_24) // drawable as a placeholder
-                    .error(R.drawable.baseline_photo_24) //  drawable if an error occurs
+                    .placeholder(R.drawable.baseline_person_24) // drawable as a placeholder
+                    .error(R.drawable.baseline_person_24) //  drawable if an error occurs
                     .into(photo)
 
             name.text = person.name

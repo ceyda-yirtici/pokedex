@@ -38,7 +38,7 @@ class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentDiscoveredBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -48,8 +48,6 @@ class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
         val toolbarTitle = binding.toolbarDiscovered
         toolbarTitle.text = "Discover"
         favoritesManager = FavoritesManager.getInstance(viewModel.getDao())
-        genres = requireArguments().getString(BundleKeys.REQUEST_DISCOVER).toString()
-        minVote = requireArguments().getFloat(BundleKeys.MIN_VOTE)
         initView(view)
         listenViewModel()
     }
@@ -65,6 +63,8 @@ class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
 
     override fun onStart(){
         super.onStart()
+        genres = requireArguments().getString(BundleKeys.REQUEST_DISCOVER).toString()
+        minVote = requireArguments().getFloat(BundleKeys.MIN_VOTE)
         viewModel.updateLikedMovieIds()
         viewModel.displayGroup(pageCount, genres, minVote)
 

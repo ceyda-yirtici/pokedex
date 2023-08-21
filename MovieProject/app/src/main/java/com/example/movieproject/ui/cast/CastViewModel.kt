@@ -30,6 +30,10 @@ class CastViewModel @Inject constructor(
     private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
     val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
+    private val _liveDataBackDropMovie = MutableLiveData<MovieDetail>()
+    val liveDataBackDropMovie: MutableLiveData<MovieDetail> = _liveDataBackDropMovie
+
+
     val liveDataLoading = MutableLiveData<Boolean>()
 
     private val _liveDataCast = MutableLiveData<CastPerson>()
@@ -43,6 +47,11 @@ class CastViewModel @Inject constructor(
              try {
                  val credit =movieService.getPersonMovieCredits(id,BundleKeys.API_KEY)
                  val currentList = credit.castMovies
+                 val highestVotedMovie = currentList
+                     .filter { it.backdrop_path != null }
+                     .maxBy { it.popularity }
+
+                 _liveDataBackDropMovie.postValue(highestVotedMovie)
                  _liveDataMovieList.postValue(currentList)
 
             }

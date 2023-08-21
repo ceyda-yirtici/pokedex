@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
             override fun onFragmentViewCreated(fm: FragmentManager, f: Fragment, v: View, savedInstanceState: Bundle?) {
-                TransitionManager.beginDelayedTransition(binding.root, Slide(Gravity.END).excludeTarget(R.id.nav_host_fragment_activity_main, true))
+                TransitionManager.beginDelayedTransition(binding.root, Slide(Gravity.BOTTOM).excludeTarget(R.id.nav_host_fragment_activity_main, true))
                 when (f) {
                     is DetailMovieFragment -> {
                         binding.navView.visibility = View.GONE

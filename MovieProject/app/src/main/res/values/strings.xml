@@ -7,4 +7,7 @@
     <string name="about">About</string>
     <string name="recommendations">Recommendations</string>
     <string name="biography">Biography</string>
+    <string name="placeholder">placeholder</string>
+    <string name="no_movies_in_favorites_list">No movies in Favorites List</string>
+    <string name="placeholder_text_favorites">Save movies you like, and they will show up here.</string>
 </resources>

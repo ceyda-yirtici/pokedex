@@ -13,6 +13,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.recyclerview.widget.RecyclerView
@@ -121,7 +122,6 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
         @SuppressLint("SetTextI18n")
         fun bind(detail: MovieDetail) {
             val heartResource: Int
-
             if(viewMovieType == 1) {
                 val movie: TextView = itemView.findViewById(R.id.movie)
                 val photo: ImageView = itemView.findViewById(R.id.photo)
@@ -168,7 +168,6 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-
         return if(viewMovieType == 1) {
             val itemView = inflater.inflate(R.layout.item_movie, parent, false)
             MovieViewHolder(itemView, listener, viewMovieType)
