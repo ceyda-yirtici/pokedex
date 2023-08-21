@@ -10,4 +10,12 @@
     <string name="placeholder">placeholder</string>
     <string name="no_movies_in_favorites_list">No movies in Favorites List</string>
     <string name="placeholder_text_favorites">Save movies you like, and they will show up here.</string>
+    <string name="favorites">Favorites</string>
+    <string name="discover">Discover</string>
+    <string name="popular_movies">Popular Movies</string>
+
+    <plurals name="cart_order_count">
+        <item quantity="one">%1d item</item>
+        <item quantity="other">%1d items</item>
+    </plurals>
 </resources>

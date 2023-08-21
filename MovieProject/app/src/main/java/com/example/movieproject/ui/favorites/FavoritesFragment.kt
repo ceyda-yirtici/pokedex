@@ -6,6 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -16,7 +19,9 @@ import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
-import com.example.movieproject.ui.MovieRecyclerAdapter
+import com.example.movieproject.ui.components.Movie
+import com.example.movieproject.ui.components.OrderLine
+import com.example.movieproject.ui.design.favorites.Favorites
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -24,17 +29,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
-class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
+class FavoritesFragment() : Fragment() {
 
     private lateinit var binding: FragmentFavoritesBinding
     private lateinit var favoritesManager: FavoritesManager
+    private lateinit var favorites: ComposeView
     private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
-    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
+
+    //private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         binding = FragmentFavoritesBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -44,6 +52,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         val toolbarTitle = binding.toolbar.findViewById<TextView>(R.id.toolbarFavorites)
         toolbarTitle.text = "Favorite Movies"
         viewModel.createList()
+        favorites = ComposeView(requireContext())
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
         initView(view)
         listenViewModel()
@@ -66,10 +75,11 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     private fun initView(view: View) {
         view.apply {
             val layoutManager = LinearLayoutManager(requireContext())
-            binding.recycler.layoutManager = layoutManager
-            binding.recycler.adapter = movieRecyclerAdapter
+            //binding.recycler.layoutManager = layoutManager
+           // binding.recycler.adapter = movieRecyclerAdapter
         }
     }
+
 
 
 
@@ -81,7 +91,10 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 binding.placeholder.placeholderLayout.visibility = if (it)  View.GONE else View.VISIBLE
             }
             liveDataFavoritesList.observe(viewLifecycleOwner) {
-                movieRecyclerAdapter.updateFavList(it)
+
+                updateFavList(it)
+              //  movieRecyclerAdapter.updateFavList(it)
+
             }
             liveDataLoading.observe(viewLifecycleOwner) {
                 binding.loading.visibility = if (it) View.VISIBLE else View.GONE
@@ -92,7 +105,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 binding.swiperefresh.isRefreshing  = false
                 viewModel.displayGroup()
             }
-            movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
+           /* movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     viewModel.displayGroup()
                 }
@@ -114,9 +127,26 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
                 }
 
             })
-
+*/
         }
     }
+
+    private fun updateFavList(movieList: MutableList<MovieDetail>) {
+        var list : ArrayList<OrderLine> = arrayListOf()
+        movieList.map {
+            val line = OrderLine(movie = Movie(id = it.id, imageUrl = it.poster_path, name = it.title))
+            list.add(line)
+        }
+
+
+        favorites.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                Favorites(orderLines = list)
+            }
+        }
+    }
+
     private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
         val id = clickedMovie.id
@@ -163,4 +193,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         }
 
     }
+
+
 }

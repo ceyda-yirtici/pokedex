@@ -54,6 +54,7 @@ class MoviesFragment : Fragment(){
         super.onViewCreated(view, savedInstanceState)
         binding.toolbar.findViewById<TextView>(R.id.toolbarTitle).text = toolbarText
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
+
         initView(view)
 
     }
@@ -271,9 +272,10 @@ class MoviesFragment : Fragment(){
         const val initialView = 1
         const val listView = 1
         const val gridView = 2
-        const val toolbarText = "Popular Movies"
+        const val toolbarText = "Popular"
         const val spanCountLandscape = 6
         const val spanCountPortrait = 3
+
     }
 
 
