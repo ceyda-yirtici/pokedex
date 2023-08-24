@@ -5,55 +5,59 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
+import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
-import com.example.movieproject.ui.components.Movie
-import com.example.movieproject.ui.components.OrderLine
-import com.example.movieproject.ui.design.favorites.Favorites
+import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
+import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
-class FavoritesFragment() : Fragment() {
+class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
+    private lateinit var movieDao: MovieDao
     private lateinit var binding: FragmentFavoritesBinding
-    private lateinit var favoritesManager: FavoritesManager
-    private lateinit var favorites: ComposeView
     private val viewModel: FavoritesViewModel by viewModels(ownerProducer = { this })
 
-    //private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
+    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
+    private lateinit var favoritesManager: FavoritesManager
+    private lateinit var loadingView: ProgressBar
+    private lateinit var recyclerView: RecyclerView
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         binding = FragmentFavoritesBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val toolbarTitle = binding.toolbar.findViewById<TextView>(R.id.toolbarFavorites)
+        val toolbarTitle = view.findViewById<TextView>(R.id.toolbarFavorites)
         toolbarTitle.text = "Favorite Movies"
-        viewModel.createList()
-        favorites = ComposeView(requireContext())
-        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
+
+        val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
+        movieDao = database.movieDao()
+        favoritesManager = FavoritesManager.getInstance(movieDao)
         initView(view)
         listenViewModel()
     }
@@ -61,51 +65,35 @@ class FavoritesFragment() : Fragment() {
     override fun onStart(){
         super.onStart()
         viewModel.createList()
-        listenViewModel()
 
     }
-
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        listenViewModel()
-    }
-
-
     private fun initView(view: View) {
         view.apply {
+            recyclerView = binding.recycler
             val layoutManager = LinearLayoutManager(requireContext())
-            //binding.recycler.layoutManager = layoutManager
-           // binding.recycler.adapter = movieRecyclerAdapter
+            recyclerView.layoutManager = layoutManager
+
+            // Create the adapter instance
+
+            // Set the adapter to the RecyclerView
+            recyclerView.adapter = movieRecyclerAdapter
+
+            loadingView = binding.loading
         }
     }
 
 
 
-
-
     private fun listenViewModel() {
         viewModel.apply {
-
-            liveDataDaoState.observe(viewLifecycleOwner){
-                binding.placeholder.placeholderLayout.visibility = if (it)  View.GONE else View.VISIBLE
-            }
             liveDataFavoritesList.observe(viewLifecycleOwner) {
-
-                updateFavList(it)
-              //  movieRecyclerAdapter.updateFavList(it)
-
+                movieRecyclerAdapter.updateFavList(it)
             }
             liveDataLoading.observe(viewLifecycleOwner) {
-                binding.loading.visibility = if (it) View.VISIBLE else View.GONE
-                binding.recycler.visibility = if (it) View.GONE else View.VISIBLE
+                loadingView.visibility = if (it) View.VISIBLE else View.GONE
+                recyclerView.visibility = if (it) View.GONE else View.VISIBLE
             }
-            binding.swiperefresh.setOnRefreshListener {
-                viewModel.createList()
-                binding.swiperefresh.isRefreshing  = false
-                viewModel.displayGroup()
-            }
-           /* movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
+            movieRecyclerAdapter.setOnBottomReachedListener(object : MovieRecyclerAdapter.OnBottomReachedListener{
                 override fun onBottomReached(position: Int) {
                     viewModel.displayGroup()
                 }
@@ -127,25 +115,14 @@ class FavoritesFragment() : Fragment() {
                 }
 
             })
-*/
+
         }
     }
 
-    private fun updateFavList(movieList: MutableList<MovieDetail>) {
-        var list : ArrayList<OrderLine> = arrayListOf()
-        movieList.map {
-            val line = OrderLine(movie = Movie(id = it.id, imageUrl = it.poster_path, name = it.title))
-            list.add(line)
-        }
 
 
-        favorites.apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                Favorites(orderLines = list)
-            }
-        }
-    }
+
+
 
     private fun movieClicked(position: Int, movieView:View, movieList: MutableList<MovieDetail>) {
         val clickedMovie = movieList[position]
@@ -153,7 +130,6 @@ class FavoritesFragment() : Fragment() {
         val bundle = Bundle().apply {
             putInt(BundleKeys.REQUEST_MOVIE_ID, id)
             putInt(BundleKeys.position, position)
-            putInt(BundleKeys.ACTION_ID, 2)
         }
 
         val destinationFragment = DetailMovieFragment()
@@ -193,6 +169,4 @@ class FavoritesFragment() : Fragment() {
         }
 
     }
-
-
 }

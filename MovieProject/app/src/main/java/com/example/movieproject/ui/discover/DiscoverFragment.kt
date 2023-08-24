@@ -16,9 +16,8 @@ import com.example.movieproject.utils.BundleKeys
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import dagger.hilt.android.AndroidEntryPoint
-
 @AndroidEntryPoint
-class DiscoverFragment : Fragment() {
+class DiscoverFragment() : Fragment() {
 
     private lateinit var binding: FragmentDiscoverBinding
     private lateinit var dialogView: View // only for genre dialog

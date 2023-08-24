@@ -17,9 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @HiltViewModel
-class MoviesViewModel @Inject constructor(
+class MoviesViewModel  @Inject constructor(
     private val movieService: MovieService, application: Application
 )
     : ViewModel() {

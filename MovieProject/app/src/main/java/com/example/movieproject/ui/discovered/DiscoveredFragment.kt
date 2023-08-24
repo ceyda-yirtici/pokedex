@@ -22,7 +22,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 @AndroidEntryPoint
 class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
 

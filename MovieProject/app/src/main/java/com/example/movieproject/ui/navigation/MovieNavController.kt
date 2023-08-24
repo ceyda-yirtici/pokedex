@@ -14,7 +14,7 @@ import androidx.navigation.compose.rememberNavController
  * Destinations used in the [JetsnackApp].
  */
 object MainDestinations {
-    const val POPULAR_MOVIES_ROUTE = "popular"
+    const val POPULAR_MOVIES_ROUTE = "favorites"
     const val MOVIE_DETAIL_ROUTE = "details"
     const val DISCOVER = "discover"
     const val MOVIE_ID_KEY = "movieId"

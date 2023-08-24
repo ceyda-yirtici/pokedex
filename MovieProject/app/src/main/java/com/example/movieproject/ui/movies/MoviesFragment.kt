@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -26,9 +27,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 @AndroidEntryPoint
-class MoviesFragment : Fragment(){
+class MoviesFragment() : Fragment(){
 
     private lateinit var binding: FragmentMoviesBinding
     private lateinit var favoritesManager: FavoritesManager
@@ -43,7 +43,7 @@ class MoviesFragment : Fragment(){
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         Log.d("view", "create")
         binding = FragmentMoviesBinding.inflate(inflater, container, false)
         return binding.root

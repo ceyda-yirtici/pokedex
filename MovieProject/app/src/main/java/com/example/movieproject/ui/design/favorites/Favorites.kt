@@ -7,18 +7,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SnackbarHost
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -37,37 +38,115 @@ import com.example.jetsnack.ui.utils.mirroringIcon
 import com.example.movieproject.R
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import com.example.movieproject.ui.components.JetsnackScaffold
 import com.example.movieproject.ui.components.OrderLine
+import com.example.movieproject.ui.components.rememberJetsnackScaffoldState
 import com.example.movieproject.ui.theme.MovieTheme
+import com.example.movieproject.utils.FavoritesFragmentArgs
+
 
 @Preview("default")
 @Preview("dark theme", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CartPreview() {
     MovieTheme {
-        Favorites(
-            orderLines = arrayListOf()
+        FavoriteList(
+            list = favList.getList(),
+            navController = navigateController.getItem()
         )
     }
 }
 
-@Composable
-fun Favorites(
+object favList {
+    lateinit var orderLines : List<String>
+    fun getList(): List<String> {
+        return orderLines
+    }
+    fun setList(orderLines:  List<String>) {
+        this.orderLines = orderLines
+    }
+}
 
+object navigateController {
+    lateinit var navController : NavController
+    fun getItem(): NavController {
+        return navController
+    }
+    fun setItem( navController: NavController)  {
+        this.navController = navController
+    }
+
+}
+/*
+@Composable
+private fun Favorites(
+    onSnackClick: (Long) -> Unit,
     orderLines: ArrayList<OrderLine>,
     modifier: Modifier = Modifier
 ) {
         Box {
             CartContent(
                 orderLines = orderLines,
+                onSnackClick = onSnackClick,
                 modifier = Modifier.align(Alignment.TopCenter)
             )
         }
 
+}*/
+
+
+@Composable
+fun FavoriteList(list: List<String>, navController: NavController) {
+    favList.setList(list)
+    navigateController.setItem(navController)
+    LazyColumn {
+        items(list) { item ->
+            Text(text = item, modifier = Modifier.padding(8.dp))
+        }
+    }
 }
+/*
+@Composable
+fun Favorites(
+    args: FavoritesFragmentArgs,
+    orderLines: ArrayList<OrderLine>
+) {
+    val onSnackClick: (Long) -> Unit =  { id -> args.onSnackSelected(id, args.from) }
+    val onNavigateToRoute: ((String) -> Unit) = args.navigateToRoute
+    val modifier: Modifier = args.modifier
+    list.setList(orderLines)
+    val jetsnackScaffoldState = rememberJetsnackScaffoldState()
+    JetsnackScaffold(
+        bottomBar = {
+            MovieBottomBar(
+                tabs = NavBarSections.values(),
+                currentRoute = NavBarSections.FAVORITES.route,
+                navigateToRoute = onNavigateToRoute
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = it,
+                modifier = Modifier.systemBarsPadding(),
+            )
+        },
+        scaffoldState = jetsnackScaffoldState.scaffoldState,
+        modifier = modifier
+    ) { paddingValues ->
+        Favorites(
+            orderLines = orderLines,
+            onSnackClick = onSnackClick,
+            modifier = Modifier.padding(paddingValues)
+        )
+    }
+}
+
 @Composable
 fun CartContent(
     orderLines: List<OrderLine>,
+    onSnackClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val resources = LocalContext.current.resources
@@ -114,6 +193,7 @@ fun CartContent(
             items(orderLines) { orderLine ->
                 CartItem(
                     orderLine = orderLine,
+                    onSnackClick = onSnackClick,
                     modifier = modifier
                 )
             }
@@ -124,12 +204,14 @@ fun CartContent(
 @Composable
 fun CartItem(
     orderLine: OrderLine,
+    onSnackClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val movie = orderLine.movie
     ConstraintLayout(
          modifier = modifier
             .fillMaxWidth()
+             .clickable { onSnackClick(movie.id.toLong()) }
             .background(MovieTheme.colors.uiBackground)
             //.padding(horizontal = 24.dp)
             .padding(start = 24.dp)
@@ -215,4 +297,4 @@ fun CartItem(
         )
     }
 }
-
+*/

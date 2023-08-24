@@ -1,5 +1,8 @@
 package com.example.movieproject.ui.navigation
 
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.annotation.FloatRange
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
@@ -18,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -47,30 +52,46 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.os.ConfigurationCompat
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.movieproject.R
 import com.example.movieproject.ui.components.JetsnackSurface
 import com.example.movieproject.ui.discover.DiscoverFragment
 import com.example.movieproject.ui.favorites.FavoritesFragment
 import com.example.movieproject.ui.movies.MoviesFragment
 import com.example.movieproject.ui.theme.MovieTheme
+import com.example.movieproject.utils.FavoritesFragmentArgs
 import java.util.Locale
 
-fun NavGraphBuilder.addHomeGraph(
+/*
+private val movies: MoviesFragment = MoviesFragment()
+private val discover: DiscoverFragment = DiscoverFragment()
 
+fun NavGraphBuilder.addHomeGraph(
+    onSnackSelected: (Long, NavBackStackEntry) -> Unit,
+    onNavigateToRoute: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+
+
     composable(NavBarSections.MOVIES.route) { from ->
-        MoviesFragment()
+       movies
     }
     composable(NavBarSections.DISCOVER.route) { from ->
-        DiscoverFragment()
+       discover
     }
     composable(NavBarSections.FAVORITES.route) { from ->
-        FavoritesFragment()
+
+
     }
+
 }
 
 enum class NavBarSections(
@@ -78,9 +99,10 @@ enum class NavBarSections(
     val icon: ImageVector,
     val route: String
 ) {
+
+    FAVORITES(R.string.favorites, Icons.Outlined.ShoppingCart, "home/favorites"),
     MOVIES(R.string.popular_movies, Icons.Outlined.Home, "home/popular"),
     DISCOVER(R.string.discover, Icons.Outlined.Search, "home/discover"),
-    FAVORITES(R.string.favorites, Icons.Outlined.ShoppingCart, "home/favorites"),
     }
 
 @Composable
@@ -336,15 +358,63 @@ private val BottomNavHeight = 56.dp
 private val BottomNavLabelTransformOrigin = TransformOrigin(0f, 0.5f)
 private val BottomNavIndicatorShape = RoundedCornerShape(percent = 50)
 private val BottomNavigationItemPadding = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+*/
+
+@Composable
+fun BottomNavigationBar(navController: NavController) {
+    val items = listOf(
+        Screen.Movies.route,
+        Screen.Favorites.route
+    )
+    BottomNavigation {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        items.forEach { route ->
+            BottomNavigationItem(
+                selected = currentRoute == route,
+                onClick = { navController.navigate(route) },
+                icon = { /* Icon for the navigation item */ },
+                label = { /* Label for the navigation item */ }
+            )
+        }
+    }
+
+}
+
+sealed class Screen(val route: String) {
+    object Movies : Screen("movies")
+    object Favorites : Screen("favorites")
+}
+
+/*
+
+@Composable
+fun MoviesContent() {
+    // Composable for the content of Fragment 1
+}
+
+@Composable
+fun FavoritesContent() {
+    // Composable for the content of Fragment 2
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavController) {
+    // Your bottom navigation UI here
+}
+
+
 
 @Preview
 @Composable
-private fun JetsnackBottomNavPreview() {
+private fun MovieBottomNavPreview() {
     MovieTheme {
         MovieBottomBar(
             tabs = NavBarSections.values(),
-            currentRoute = "home/feed",
+            currentRoute = "home/favorites",
             navigateToRoute = { }
         )
     }
 }
+*/

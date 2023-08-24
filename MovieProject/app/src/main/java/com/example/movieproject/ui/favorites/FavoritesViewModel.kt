@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val movieService: MovieService, application: Application
@@ -31,19 +30,19 @@ class FavoritesViewModel @Inject constructor(
     private val movieDao: MovieDao
 
     val liveDataLoading = MutableLiveData<Boolean>()
-    val liveDataDaoState =  MutableLiveData<Boolean>()
 
     private val _liveDataFavoritesList = MutableLiveData<MutableList<MovieDetail>>()
     val liveDataFavoritesList: LiveData<MutableList<MovieDetail>> = _liveDataFavoritesList
 
-    var _databaseList = MutableStateFlow<HashMap<Int, Boolean>>(HashMap())
+    private var _databaseList = MutableStateFlow<HashMap<Int, Boolean>>(HashMap())
     var databaseList: StateFlow<HashMap<Int, Boolean>> = _databaseList
 
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
-        checkDaoEmpty()
         createList()
+
+
     }
     fun getMovieDao(): MovieDao {
         return movieDao
@@ -64,15 +63,6 @@ class FavoritesViewModel @Inject constructor(
                 _liveDataFavoritesList.postValue(arrayListOf())
             }
             liveDataLoading.postValue(false)
-        }
-    }
-
-    fun checkDaoEmpty() {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (movieDao.getAll().isEmpty())
-            liveDataDaoState.postValue(false)
-            else      liveDataDaoState.postValue(true)
-
         }
     }
 
@@ -100,10 +90,8 @@ class FavoritesViewModel @Inject constructor(
                 Log.d("ids", databaseList.value.toString())
 
             }
-            checkDaoEmpty()
             setFavoritesList()
             displayGroup()
-
 
 
         }
@@ -125,9 +113,15 @@ class FavoritesViewModel @Inject constructor(
             nextTenKeys.add(entry.key)
             databaseList.value[entry.key] = true
         }
+
+
+
         Log.d("nextTenKeys", nextTenKeys.toString())
         return nextTenKeys
     }
-
-
 }
+
+
+
+
+
