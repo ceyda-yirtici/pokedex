@@ -7,16 +7,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.movieproject.model.CastPerson
-import com.example.movieproject.model.GenreList
-import com.example.movieproject.model.MovieCredit
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.model.MovieList
-import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
 import com.example.movieproject.utils.BundleKeys
-import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,62 +26,56 @@ class CastViewModel @Inject constructor(
 )
     : ViewModel() {
 
-    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
-    val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
+    private val _uiState = MutableStateFlow(CastUiState())
+    val uiState: StateFlow<CastUiState> = _uiState.asStateFlow()
 
-    private val _liveDataBackDropMovie = MutableLiveData<MovieDetail>()
-    val liveDataBackDropMovie: MutableLiveData<MovieDetail> = _liveDataBackDropMovie
+    data class CastUiState(
 
+        val movieList: ArrayList<MovieDetail> = arrayListOf(),
+        val backDropMovie: MovieDetail? = null,
+        val cast: CastPerson? = null,
+        val loading: Boolean = true,
+    )
 
-    val liveDataLoading = MutableLiveData<Boolean>()
-
-    private val _liveDataCast = MutableLiveData<CastPerson>()
-    val liveDataCast: LiveData<CastPerson> = _liveDataCast
-
-
-    private fun callMovieRepos(id:Int) {
+    private fun callMovieRepos(id: Int) {
 
 
         viewModelScope.launch(Dispatchers.IO) {
-             try {
-                 val credit =movieService.getPersonMovieCredits(id,BundleKeys.API_KEY)
-                 val currentList = credit.castMovies
-                 val highestVotedMovie = currentList
-                     .filter { it.backdrop_path != null }
-                     .maxBy { it.popularity }
+            try {
+                val credit = movieService.getPersonMovieCredits(id, BundleKeys.API_KEY)
+                val currentList = credit.castMovies
+                val highestVotedMovie = currentList
+                    .filter { it.backdrop_path != null }
+                    .maxBy { it.vote }
 
-                 _liveDataBackDropMovie.postValue(highestVotedMovie)
-                 _liveDataMovieList.postValue(currentList)
+                _uiState.update {
+                    it.copy(movieList = currentList,backDropMovie = highestVotedMovie)
+                }
 
-            }
-            catch  (exception: Exception) {
-                _liveDataMovieList.postValue(mutableListOf())
+            } catch (exception: Exception) {
+                _uiState.update {
+                    it.copy(movieList = arrayListOf())
+                }
             }
         }
     }
     private fun callCastRepos(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val person = try {
-                 movieService.getPerson(id, BundleKeys.API_KEY)
+            try {
+                val person = movieService.getPerson(id, BundleKeys.API_KEY)
+
+                _uiState.update { it.copy(loading = false, cast = person) }
             } catch (exception: Exception) {
                 Log.e("call cast", "Exception: ${exception.message}")
             }
-            liveDataLoading.postValue(false)
-            _liveDataCast.postValue(person as CastPerson?)
         }
     }
 
-
-
-
-
-
-    fun displayMovie(id:Int) {
+    fun displayCast(id: Int) {
+        callCastRepos(id)
         callMovieRepos(id)
     }
-    fun displayCast(id:Int) {
-        callCastRepos(id)
-    }
+
 
 
 }

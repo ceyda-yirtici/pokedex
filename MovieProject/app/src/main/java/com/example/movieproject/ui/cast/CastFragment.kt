@@ -2,44 +2,22 @@ package com.example.movieproject.ui.cast
 
 import CastScreen
 import android.annotation.SuppressLint
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.Target
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentCastBinding
-import com.example.movieproject.databinding.FragmentFavoritesBinding
-import com.example.movieproject.model.CastPerson
-import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.MovieRecyclerAdapter
-import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.AndroidEntryPoint
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
-
-
+import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -49,6 +27,7 @@ class CastFragment  : Fragment(R.layout.fragment_cast) {
     private val viewModel: CastViewModel by viewModels(ownerProducer = { this })
     private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
 
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -56,11 +35,15 @@ class CastFragment  : Fragment(R.layout.fragment_cast) {
         val composeView = ComposeView(requireContext())
 
         val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
-        viewModel.displayCast(id) // collect all values as a data class in view model
+        viewModel.displayCast(id)
 
-        viewModel.liveDataCast.observe(viewLifecycleOwner) { castPerson ->
-            composeView.setContent {
-                CastScreen(cast = castPerson)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { castState ->
+                    composeView.setContent {
+                        CastScreen(castUiState = castState, requireActivity().onBackPressedDispatcher)
+                    }
+                }
             }
         }
 
