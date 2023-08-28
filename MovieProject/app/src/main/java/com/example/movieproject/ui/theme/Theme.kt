@@ -22,6 +22,7 @@ private val LightColorPalette = MovieColors(
     brandSecondary = Ocean3,
     uiBackground = Neutral0,
     uiBorder = Neutral4,
+    placeholderBackground = Neutral3,
     uiFloated = FunctionalGrey,
     textSecondary = Neutral7,
     textHelp = Neutral6,
@@ -46,6 +47,7 @@ private val DarkColorPalette = MovieColors(
     brand = Shadow1,
     brandSecondary = Ocean2,
     uiBackground = Neutral8,
+    placeholderBackground = Neutral3,
     uiBorder = Neutral3,
     uiFloated = FunctionalDarkGrey,
     textPrimary = Shadow1,
@@ -115,6 +117,7 @@ class MovieColors(
     uiBackground: Color,
     uiBorder: Color,
     uiFloated: Color,
+    placeholderBackground: Color,
     interactivePrimary: List<Color> = gradient2_1,
     interactiveSecondary: List<Color> = gradient2_2,
     interactiveMask: List<Color> = gradient6_1,
@@ -155,6 +158,9 @@ class MovieColors(
     var uiBorder by mutableStateOf(uiBorder)
         private set
     var uiFloated by mutableStateOf(uiFloated)
+        private set
+
+    var placeholderBackground by mutableStateOf(placeholderBackground)
         private set
     var interactivePrimary by mutableStateOf(interactivePrimary)
         private set
@@ -229,6 +235,7 @@ class MovieColors(
         gradient2_2 = gradient2_2,
         gradient2_3 = gradient2_3,
         brand = brand,
+        placeholderBackground = placeholderBackground,
         brandSecondary = brandSecondary,
         uiBackground = uiBackground,
         uiBorder = uiBorder,
