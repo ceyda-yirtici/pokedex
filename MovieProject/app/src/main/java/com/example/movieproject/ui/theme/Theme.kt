@@ -40,13 +40,14 @@ private val LightColorPalette = MovieColors(
     gradient2_2 = listOf(Ocean3, Shadow3),
     gradient2_3 = listOf(Lavender3, Rose2),
     tornado1 = listOf(Shadow4, Ocean3),
-    isDark = false
+    isDark = false,
+    filledHeart = FunctionalRed
 )
 
 private val DarkColorPalette = MovieColors(
     brand = Shadow1,
     brandSecondary = Ocean2,
-    uiBackground = Neutral8,
+    uiBackground = Neutral7,
     placeholderBackground = Neutral3,
     uiBorder = Neutral3,
     uiFloated = FunctionalDarkGrey,
@@ -68,7 +69,8 @@ private val DarkColorPalette = MovieColors(
     gradient2_2 = listOf(Ocean4, Shadow2),
     gradient2_3 = listOf(Lavender3, Rose3),
     tornado1 = listOf(Shadow4, Ocean3),
-    isDark = true
+    isDark = true,
+    filledHeart = FunctionalRed
 )
 
 @Composable
@@ -133,7 +135,8 @@ class MovieColors(
     iconInteractiveInactive: Color,
     error: Color,
     notificationBadge: Color = error,
-    isDark: Boolean
+    isDark: Boolean,
+    filledHeart: Color
 ) {
     var gradient6_1 by mutableStateOf(gradient6_1)
         private set
@@ -193,6 +196,8 @@ class MovieColors(
     var notificationBadge by mutableStateOf(notificationBadge)
         private set
     var isDark by mutableStateOf(isDark)
+        private set
+    var filledHeart by mutableStateOf(filledHeart)
         private set
 
     fun update(other: MovieColors) {
@@ -256,6 +261,7 @@ class MovieColors(
         error = error,
         notificationBadge = notificationBadge,
         isDark = isDark,
+        filledHeart = filledHeart
     )
 }
 

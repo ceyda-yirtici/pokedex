@@ -13,7 +13,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowCircleLeft
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +43,9 @@ import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.cast.CastViewModel
 import com.example.movieproject.ui.components.GridMovie
+import com.example.movieproject.ui.components.ListMovie
+import com.example.movieproject.ui.components.rememberArrowCircleLeft
+import com.example.movieproject.ui.components.rememberCircle
 import com.example.movieproject.utils.BundleKeys
 import dagger.Lazy
 import java.text.SimpleDateFormat
@@ -47,7 +54,7 @@ import kotlin.collections.ArrayList
 
 
 @Preview("default")
-@Preview("light theme", uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview("light theme", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CastScreenPreview() {
 
@@ -80,7 +87,7 @@ fun CastScreenPreview() {
             cast = mockCast,
             backdrop = mockBackDrop,
             onBackPressedDispatcher = null,
-            movieList = ArrayList<MovieDetail>(arrayListOf()),
+            movieList = ArrayList(arrayListOf()),
         )
     }
 
@@ -150,8 +157,6 @@ fun CastInfo(
                 .fillMaxSize()
         ) {
             ConstraintLayout(
-                modifier = Modifier
-                    .fillMaxSize()
             ) {
                 val (toolbar, image, backdropPhoto, name, departmentText) = createRefs()
 
@@ -190,11 +195,19 @@ fun CastInfo(
                         IconButton(onClick = {
                             onBackPressedDispatcher?.onBackPressed()
                         }) {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowCircleLeft,
-                                modifier = Modifier.size(100.dp),
-                                contentDescription = "Back"
-                            )
+                            val backIcon = Icons.Filled.ArrowBack
+                            val buttonColor = MovieTheme.colors.iconInteractive
+                            Box(
+                                modifier = Modifier.size(80.dp).background(buttonColor)
+                            ) {
+
+                                Icon(
+                                    imageVector = backIcon,
+                                    tint = MovieTheme.colors.textSecondary,
+                                    modifier = Modifier.size(80.dp).padding(8.dp),
+                                    contentDescription = "Back",
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -214,7 +227,7 @@ fun CastInfo(
                     modifier = Modifier
                         .size(130.dp)
                         .border(
-                            BorderStroke(4.dp, (MovieTheme.colors.uiBackground)),
+                            BorderStroke(4.dp, (MovieTheme.colors.brand)),
                             CircleShape
                         )
                         .clip(CircleShape)
@@ -242,6 +255,7 @@ fun CastInfo(
                 if (!cast.known_for_department.isNullOrEmpty()) {
                     Text(
                         text = "${cast.known_for_department}",
+                        textAlign = TextAlign.Center,
                         fontSize = 14.sp,
                         color = MovieTheme.colors.textPrimary,
                         modifier = Modifier
@@ -324,7 +338,7 @@ fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?) {
 
         ) {
             items(items = movieList, itemContent = { item ->
-                GridMovie(imageUrl = item.poster_path, title = item.title) // image null kontrolü yap.
+                ListMovie(item, arrayListOf("Comedy", "Horror", "Animation", "Drama", "Western", "Fiction")) // image null kontrolü yap.
             })
         }
 

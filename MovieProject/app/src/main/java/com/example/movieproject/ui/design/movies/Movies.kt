@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.movieproject.ui.components.JetsnackSurface
+import com.example.movieproject.ui.components.ListItemSurface
 import com.example.movieproject.ui.components.OrderLine
 import com.example.movieproject.ui.theme.MovieTheme
 
@@ -30,7 +30,7 @@ fun Movies(
     onItemClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    JetsnackSurface(modifier = modifier.fillMaxSize()) {
+    ListItemSurface(modifier = modifier.fillMaxSize()) {
         Box {
 
         }
