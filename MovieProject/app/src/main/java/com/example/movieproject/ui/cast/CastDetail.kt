@@ -4,19 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowCircleLeft
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.SubdirectoryArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,12 +37,8 @@ import com.example.movieproject.R
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.cast.CastViewModel
-import com.example.movieproject.ui.components.GridMovie
 import com.example.movieproject.ui.components.ListMovie
-import com.example.movieproject.ui.components.rememberArrowCircleLeft
-import com.example.movieproject.ui.components.rememberCircle
 import com.example.movieproject.utils.BundleKeys
-import dagger.Lazy
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -86,8 +77,9 @@ fun CastScreenPreview() {
         CastInfo(
             cast = mockCast,
             backdrop = mockBackDrop,
-            onBackPressedDispatcher = null,
             movieList = ArrayList(arrayListOf()),
+            onBackPressedDispatcher = null,
+            genreNames = arrayListOf("Comedy", "Horror", "Drama", "Animation", "Fiction", "Western" ),
         )
     }
 
@@ -97,7 +89,6 @@ fun CastScreenPreview() {
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CastScreen(
     castUiState: CastViewModel.CastUiState?,
@@ -107,6 +98,7 @@ fun CastScreen(
     val cast = castUiState?.cast
     val backdropMovie = castUiState?.backDropMovie
     val movieList = castUiState?.movieList
+    val genreNames = castUiState?.genreNames
     MovieTheme {
         Column(
             modifier = Modifier
@@ -121,7 +113,7 @@ fun CastScreen(
                 ) {
                     item {
                         CastInfo(cast = cast, backdrop = backdropMovie, movieList = movieList,
-                            onBackPressedDispatcher = onBackPressedDispatcher)
+                            onBackPressedDispatcher = onBackPressedDispatcher, genreNames = genreNames)
                     }
 
                 }
@@ -139,9 +131,8 @@ fun CastInfo(
     backdrop: MovieDetail,
     movieList: ArrayList<MovieDetail>?,
     onBackPressedDispatcher: OnBackPressedDispatcher?,
+    genreNames: ArrayList<String>?,
 ) {
-    val context = LocalContext.current
-
     Column {
 
         // Cast person photo
@@ -311,7 +302,7 @@ fun CastInfo(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             )
         }
-        CastMovieDisplay(movieList)
+        CastMovieDisplay(movieList, genreNames = genreNames)
 
 
     }
@@ -319,7 +310,7 @@ fun CastInfo(
 }
 
 @Composable
-fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?) {
+fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?, genreNames: ArrayList<String>?) {
     if (!movieList.isNullOrEmpty()) {
         Text(
             text = "Movies",
@@ -338,7 +329,9 @@ fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?) {
 
         ) {
             items(items = movieList, itemContent = { item ->
-                ListMovie(item, arrayListOf("Comedy", "Horror", "Animation", "Drama", "Western", "Fiction")) // image null kontrolü yap.
+                if (genreNames != null) {
+                    ListMovie(item, genreNames)
+                } // image null kontrolü yap.
             })
         }
 

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.service.MovieService
+import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -29,12 +30,15 @@ class CastViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CastUiState())
     val uiState: StateFlow<CastUiState> = _uiState.asStateFlow()
 
+    val genreMapper =  MovieRecyclerAdapter.genreMapper
+
     data class CastUiState(
 
         val movieList: ArrayList<MovieDetail> = arrayListOf(),
         val backDropMovie: MovieDetail? = null,
         val cast: CastPerson? = null,
         val loading: Boolean = true,
+        val genreNames: ArrayList<String> = arrayListOf()
     )
 
     private fun callMovieRepos(id: Int) {
@@ -44,10 +48,22 @@ class CastViewModel @Inject constructor(
             try {
                 val credit = movieService.getPersonMovieCredits(id, BundleKeys.API_KEY)
                 val currentList = credit.castMovies
+
+                val genres = arrayListOf<String>()
+                for (movie in currentList) {
+                    for (genreId in movie.genre_ids) {
+                        val genreName = MovieRecyclerAdapter.genreMapper[genreId]
+                        if (genreName != null) {
+                            genres.add(genreName)
+                        }
+                    }
+                }
+                _uiState.update {
+                    it.copy(genreNames = genres)
+                }
                 val highestVotedMovie = currentList
                     .filter { it.backdrop_path != null }
                     .maxBy { it.vote }
-
                 _uiState.update {
                     it.copy(movieList = currentList,backDropMovie = highestVotedMovie)
                 }

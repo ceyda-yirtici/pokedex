@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.Px
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -48,6 +50,7 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,10 +75,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.core.view.marginBottom
@@ -85,6 +90,7 @@ import com.example.movieproject.R
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.theme.MovieTheme
 import com.example.movieproject.utils.BundleKeys
+import kotlin.math.absoluteValue
 
 
 @Composable
@@ -154,7 +160,8 @@ fun ListMovie(
     genres: ArrayList<String>
 ) {
     Box(
-        modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp)
+        modifier = Modifier
+            .width(LocalConfiguration.current.screenWidthDp.dp)
             .fillMaxWidth()
             .height(192.dp)
             .background(MovieTheme.colors.uiBackground)
@@ -255,65 +262,72 @@ fun ListMovie(
                     contentDescription = "Heart Button"
                 )
             }
-            val conf = LocalConfiguration.current
-            var screenDp by remember {mutableStateOf(400.dp)}
-                Row(
-                    modifier = Modifier
-                        .padding(start = 10.dp, end = 10.dp, top = 5.dp, bottom = 5.dp)
-                        .fillMaxWidth()
-                        .constrainAs(genreList) {
-                            top.linkTo(name.bottom)
-                            top.linkTo(heart.bottom)
-                            start.linkTo(image.end)
-                            width = Dimension.fillToConstraints
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    var textSize by remember { mutableStateOf(IntSize.Zero) }
-                    val density = LocalDensity.current
-                    val maxDimensionDp = remember(textSize) {
-                        textSize.let { textSize ->
-                            with(density) {
-                                textSize.width.toDp()
-                            }
-                        }
-                    }
-                    genres.forEachIndexed { index, item ->
-                        Genre(modifier = Modifier
-                        ) {
-                            Text(
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                                text = item,
-                                fontSize = 11.sp,
-                                color = MovieTheme.colors.textSecondary,
-                                onTextLayout = {
-                                    textSize = it.size
-                                },
-                                modifier = Modifier.padding(3.dp).drawWithContent {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .padding(start = 10.dp, top = 5.dp, bottom = 5.dp)
+                    .fillMaxWidth()
+                    .constrainAs(genreList) {
+                        top.linkTo(name.bottom)
+                        bottom.linkTo(desc.top)
+                        start.linkTo(image.end)
+                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
+                    },
+            ) {
+                val maxWidth = this@BoxWithConstraints.maxWidth
+                GenreDisplay(maxWidth,genres)
 
-                                    screenDp -= maxDimensionDp
-                                    if (screenDp >= 15.dp)
-                                        drawContent()
-                                },
-
-                            )
-
-                        }
-
-
-                    }
-                }
-
+            }
         }
-
     }
-
 }
 
 @Composable
-private fun GenreDisplay(){
+private fun GenreDisplay(maxWidth: Dp, genres: ArrayList<String>){
+    val visibilityList = List(genres.size) { mutableStateOf(true) }
+    Row(
+        modifier = Modifier.width(maxWidth),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        var totalWidth by remember { mutableStateOf(0.dp)}
+        for (index in genres.indices) {
+            val item = genres[index]
+            var textVisibility by remember { mutableStateOf(true) }
+            if(textVisibility) {
+                Genre(
+                    modifier = Modifier.alpha(1f),
+                    elevation = 5.dp
+                ) {
+                    Text(
+                        text = item,
+                        fontSize = 10.sp,
+                        softWrap = false,
+                        color = MovieTheme.colors.textSecondary,
+                        modifier = Modifier
+                            .padding(start = 5.dp, end = 5.dp, top = 2.dp, bottom = 2.dp),
+                        onTextLayout = { textLayoutResult ->
+                            if (index == 0 || (visibilityList[index - 1].value)) {
+                                val textWidth = textLayoutResult.size.width.dp
+                                if (totalWidth + textWidth <= maxWidth) {
+                                    // There's enough space, show the item
+                                    totalWidth += textWidth
+                                } else {
+                                    // Not enough space, hide the item
+                                    visibilityList[index].value = false
+                                    textVisibility = false
 
+                                }
+                            } else if (!visibilityList[index - 1].value) {
+                                visibilityList[index].value = false
+                                textVisibility = false
+                            }
+                        },
+                        )
+                }
+            }
+        }
+    }
 
 }
 
@@ -358,7 +372,7 @@ private fun ListItemPreview() {
         popularity = 0.0,
         heart_tag = "String"
     )
-    val mockGenreList = arrayListOf("Comedy", "Horror", "Animation", "Drama", "Western", "Fiction")
+    val mockGenreList = arrayListOf("Comedy", "Horror", "Drama", "Animation", "Fiction", "Western" )
     MovieTheme {
         ListMovie(mockMovie, mockGenreList)
     }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.LocalContentColor
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -43,16 +44,16 @@ import kotlin.math.ln
 @Composable
 fun ListItemSurface(
     modifier: Modifier = Modifier,
-    shape: Shape = RectangleShape,
-    color: Color = MovieTheme.colors.uiBackground,
+    shape: Shape = MaterialTheme.shapes.medium,
+    color: Color = MovieTheme.colors.uiBorder,
     contentColor: Color = MovieTheme.colors.textSecondary,
     border: BorderStroke? = null,
-    elevation: Dp = 0.dp,
+    elevation: Dp = 10.dp,
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = modifier.shadow(elevation = elevation, shape = shape, clip = false)
-            .zIndex(elevation.value)
+        modifier = modifier.shadow(elevation = elevation, shape = shape, clip = true)
+
             .then(if (border != null) Modifier.border(border, shape) else Modifier)
             .background(
                 color = getBackgroundColorForElevation(color, elevation),

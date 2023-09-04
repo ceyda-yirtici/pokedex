@@ -40,7 +40,13 @@ class DetailsViewModel @Inject constructor(
     private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
     val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
+    data class MovieUiState(
 
+        val movieList: ArrayList<MovieDetail> = arrayListOf(),
+        val movie: MovieDetail? = null,
+        val castList: ArrayList<CastPerson> = arrayListOf(),
+        val loading: Boolean = true,
+    )
 
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)

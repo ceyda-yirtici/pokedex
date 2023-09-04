@@ -31,7 +31,7 @@ import java.util.Locale
 class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
     private var movieList: MutableList<MovieDetail> = mutableListOf()
-    companion object { private var genreMapper : HashMap<Int, String> = HashMap()
+    companion object { var genreMapper : HashMap<Int, String> = HashMap()
         fun sendGenreList(it: HashMap<Int, String>) {
             genreMapper = it
         }

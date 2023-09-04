@@ -3,6 +3,7 @@ package com.example.movieproject.ui.components
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ElevationOverlay
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +22,7 @@ fun Genre(
     color: Color = MovieTheme.colors.uiBackground,
     contentColor: Color = MovieTheme.colors.textPrimary,
     border: BorderStroke? = null,
-    elevation: Dp = 2.dp,
+    elevation: Dp = 10.dp,
     content: @Composable () -> Unit
 ) {
     ListItemSurface(
