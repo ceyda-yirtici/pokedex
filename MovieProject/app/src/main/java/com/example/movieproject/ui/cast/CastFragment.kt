@@ -12,20 +12,16 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.movieproject.R
-import com.example.movieproject.databinding.FragmentCastBinding
-import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
-class CastFragment  : Fragment(R.layout.fragment_cast) {
+class CastFragment(castId: Int) : Fragment() {
 
-    private lateinit var binding: FragmentCastBinding
-    private val viewModel: CastViewModel by viewModels(ownerProducer = { this })
-    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
+    val viewModel: CastViewModel by viewModels(ownerProducer = { this@CastFragment })
+    val castId : Int = castId
 
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onCreateView(
@@ -34,8 +30,8 @@ class CastFragment  : Fragment(R.layout.fragment_cast) {
     ): View {
         val composeView = ComposeView(requireContext())
 
-        val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
-        viewModel.displayCast(id)
+        //val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
+        viewModel.displayCast(castId)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

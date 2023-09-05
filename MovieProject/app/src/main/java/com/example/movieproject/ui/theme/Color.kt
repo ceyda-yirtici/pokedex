@@ -31,6 +31,19 @@ val Shadow2 = Color(0xffc8bbfd)
 val Shadow1 = Color(0xffded6fe)
 val Shadow0 = Color(0xfff4f2ff)
 
+val BlueGray1 = Color(0xff607D8B)
+val BlueGray2 = Color(0xff546E7A)
+val BlueGray3 = Color(0xff455A64)
+val BlueGray4 = Color(0xff37474F)
+val BlueGray5 = Color(0xff263238)
+val BlueGray6 = Color(0xff78909C)
+val BlueGray7 = Color(0xff607D8B)
+val BlueGray8 = Color(0xff546E7A)
+val BlueGray9 = Color(0xff455A64)
+val BlueGray10 = Color(0xff37474F)
+val BlueGray11 = Color(0xff263238)
+
+
 val Ocean11 = Color(0xff005687)
 val Ocean10 = Color(0xff006d9e)
 val Ocean9 = Color(0xff0087b3)
@@ -69,6 +82,20 @@ val Rose3 = Color(0xfff985aa)
 val Rose2 = Color(0xfffdbbcf)
 val Rose1 = Color(0xfffed6e2)
 val Rose0 = Color(0xfffff2f6)
+
+val BluePurple1 = Color(0xff3f51b5)  // Royal Blue
+val BluePurple2 = Color(0xff5c6bc0)  // Indigo
+val BluePurple3 = Color(0xff7986cb)  // Blue Grey
+val BluePurple4 = Color(0xff9fa8da)  // Light Blue
+val BluePurple5 = Color(0xffc5cae9)  // Light Blue Grey
+val BluePurple6 = Color(0xffe8eaf6)  // Light Blue Grey
+val BluePurple7 = Color(0xffab47bc)  // Purple
+val BluePurple8 = Color(0xffce93d8)  // Purple
+val BluePurple9 = Color(0xffe1bee7)  // Light Purple
+val BluePurple10 = Color(0xfff3e5f5) // Light Purple Grey
+
+
+
 
 val Neutral8 = Color(0xff121212)
 val Neutral7 = Color(0xde000000)

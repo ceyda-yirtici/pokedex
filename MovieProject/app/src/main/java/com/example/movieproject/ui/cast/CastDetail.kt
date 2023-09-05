@@ -37,6 +37,7 @@ import com.example.movieproject.R
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.cast.CastViewModel
+import com.example.movieproject.ui.components.GridMovie
 import com.example.movieproject.ui.components.ListMovie
 import com.example.movieproject.utils.BundleKeys
 import java.text.SimpleDateFormat
@@ -79,7 +80,6 @@ fun CastScreenPreview() {
             backdrop = mockBackDrop,
             movieList = ArrayList(arrayListOf()),
             onBackPressedDispatcher = null,
-            genreNames = arrayListOf("Comedy", "Horror", "Drama", "Animation", "Fiction", "Western" ),
         )
     }
 
@@ -98,7 +98,6 @@ fun CastScreen(
     val cast = castUiState?.cast
     val backdropMovie = castUiState?.backDropMovie
     val movieList = castUiState?.movieList
-    val genreNames = castUiState?.genreNames
     MovieTheme {
         Column(
             modifier = Modifier
@@ -113,7 +112,7 @@ fun CastScreen(
                 ) {
                     item {
                         CastInfo(cast = cast, backdrop = backdropMovie, movieList = movieList,
-                            onBackPressedDispatcher = onBackPressedDispatcher, genreNames = genreNames)
+                            onBackPressedDispatcher = onBackPressedDispatcher)
                     }
 
                 }
@@ -131,7 +130,6 @@ fun CastInfo(
     backdrop: MovieDetail,
     movieList: ArrayList<MovieDetail>?,
     onBackPressedDispatcher: OnBackPressedDispatcher?,
-    genreNames: ArrayList<String>?,
 ) {
     Column {
 
@@ -139,7 +137,7 @@ fun CastInfo(
         val photoUrl = BundleKeys.baseImageUrl + cast.photo_path
         val backdropUrl = BundleKeys.baseImageUrlForOriginalSize + backdrop.backdrop_path
         val gradient = Brush.verticalGradient(
-            colors = listOf(Color.Transparent, MovieTheme.colors.uiBackground), startY = 100.0f,
+            colors = MovieTheme.colors.gradientBackDrop, startY = 100.0f,
             endY = 500.0f
         )
         Box(
@@ -292,7 +290,7 @@ fun CastInfo(
                     text = "Biography",
                     fontWeight = FontWeight.Bold,
                     color = MovieTheme.colors.textPrimary,
-                    fontSize = 18.sp,
+                    fontSize = 19.sp,
                     modifier = Modifier.padding(16.dp)
                 )
             Text(
@@ -302,7 +300,7 @@ fun CastInfo(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             )
         }
-        CastMovieDisplay(movieList, genreNames = genreNames)
+        CastMovieDisplay(movieList)
 
 
     }
@@ -310,13 +308,13 @@ fun CastInfo(
 }
 
 @Composable
-fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?, genreNames: ArrayList<String>?) {
+fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?) {
     if (!movieList.isNullOrEmpty()) {
         Text(
             text = "Movies",
             color = MovieTheme.colors.textPrimary,
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
+            fontSize = 22.sp,
             modifier = Modifier.padding(16.dp)
         )
         LazyRow(
@@ -329,12 +327,10 @@ fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?, genreNames: ArrayList<S
 
         ) {
             items(items = movieList, itemContent = { item ->
-                if (genreNames != null) {
-                    ListMovie(item, genreNames)
-                } // image null kontrolü yap.
+                    GridMovie(item)
+
             })
         }
-
     }
 }
 

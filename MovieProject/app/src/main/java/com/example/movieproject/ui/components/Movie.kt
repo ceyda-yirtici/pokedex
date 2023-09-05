@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -95,13 +96,13 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun GridMovie(
-              imageUrl: String?,
-              title: String
+              movie:MovieDetail
 ) {
 
     Box(
         modifier = Modifier.width(130.dp)
     ) {
+        val imageUrl = movie.poster_path
         var photoUrl = ""
         if (imageUrl != null) photoUrl = BundleKeys.baseImageUrl + imageUrl
 
@@ -118,7 +119,7 @@ fun GridMovie(
                 contentDescription = "Grid Movie Photo",
                 contentScale = ContentScale.Fit, // Center-crop the image
                 modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp)
+                    .padding(start = 5.dp, end = 10.dp)
                     .background(
                         color = Color.Transparent
                     )
@@ -133,7 +134,7 @@ fun GridMovie(
 
             )
             Text(
-                text = title,
+                text = movie.title,
                 overflow= TextOverflow.Ellipsis,
                 color = MovieTheme.colors.textPrimary,
                 textAlign = TextAlign.Center,
@@ -141,7 +142,7 @@ fun GridMovie(
                 fontSize = 12.sp,
                 maxLines =  1,
                 modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
+                    .padding(start = 5.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
                     .constrainAs(name) {
                         top.linkTo(image.bottom)
                         start.linkTo(image.start)
@@ -237,7 +238,7 @@ fun ListMovie(
                     }
             )
             val contextForToast = LocalContext.current.applicationContext
-            val heartIcon: ImageVector = if (movie.heart_tag == "outline") Icons.Outlined.FavoriteBorder
+            var heartIcon: ImageVector = if (movie.heart_tag == "outline") Icons.Outlined.FavoriteBorder
             else Icons.Filled.Favorite
             val heartTint: Color = if (movie.heart_tag == "outline") MovieTheme.colors.iconInteractiveInactive
             else MovieTheme.colors.filledHeart
@@ -251,6 +252,14 @@ fun ListMovie(
                     },
                 onClick = {
                     Toast.makeText(contextForToast, "Click!", Toast.LENGTH_SHORT).show()
+                    if (movie.heart_tag == "filled"){
+                        movie.heart_tag = "outline"
+                        heartIcon =  Icons.Outlined.FavoriteBorder
+                    }
+                    else{
+                        heartIcon = Icons.Filled.Favorite
+                        movie.heart_tag = "filled"
+                    }
                 }
 
             ) {
@@ -296,7 +305,7 @@ private fun GenreDisplay(maxWidth: Dp, genres: ArrayList<String>){
             var textVisibility by remember { mutableStateOf(true) }
             if(textVisibility) {
                 Genre(
-                    modifier = Modifier.alpha(1f),
+                    modifier = Modifier.alpha(1f).wrapContentWidth(),
                     elevation = 5.dp
                 ) {
                     Text(
@@ -348,8 +357,22 @@ data class Movie(
 @Preview("dark theme", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun GridItemPreview() {
+    val mockMovie = MovieDetail(
+        backdrop_path = "",
+        title = "Spider-Man: Across the Spider Verse",
+        original_title = "",
+        poster_path = "String",
+        overview = "Lorem ipsum dolor sit amet...",
+        release_date = "String",
+        genre_ids = listOf(),
+        genres = listOf(),
+        id = 0,
+        vote = 0.0,
+        popularity = 0.0,
+        heart_tag = "String"
+    )
     MovieTheme {
-        GridMovie(title = "Movie", imageUrl = "")
+        GridMovie(mockMovie)
     }
 }
 

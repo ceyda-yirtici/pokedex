@@ -3,11 +3,13 @@ package com.example.movieproject.ui.components
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,20 +28,25 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil.compose.rememberAsyncImagePainter
 import com.example.movieproject.R
+import com.example.movieproject.model.CastPerson
+import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.theme.MovieTheme
 import com.example.movieproject.utils.BundleKeys
+import com.google.gson.annotations.SerializedName
 
 @Composable
 fun CastItem(
-    imageUrl: String?,
-    title: String
+    person: CastPerson,
+    onItemClick: (Int) -> Unit,
 ) {
 
     Box(
-        modifier = Modifier.width(130.dp)
+        modifier = Modifier
+            .width(130.dp)
+            .clickable { onItemClick(person.id) }
     ) {
         var photoUrl = ""
-        if (imageUrl != null) photoUrl = BundleKeys.baseImageUrl + imageUrl
+        if (person.photo_path != null) photoUrl = BundleKeys.baseImageUrl + person.photo_path
 
         Column {
 
@@ -50,10 +57,11 @@ fun CastItem(
                     placeholder = painterResource(id = R.drawable.baseline_photo_220dp)
                 ),
                 alignment =  Alignment.Center,
-                contentDescription = "Grid Movie Photo",
-                contentScale = ContentScale.Fit, // Center-crop the image
+                contentDescription = "Grid Cast Photo",
+                contentScale = ContentScale.Crop, // Center-crop the image
                 modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(start = 5.dp, end = 10.dp)
                     .background(
                         color = Color.Transparent
                     )
@@ -64,7 +72,7 @@ fun CastItem(
 
             )
             Text(
-                text = title,
+                text = person.name,
                 overflow= TextOverflow.Ellipsis,
                 color = MovieTheme.colors.textPrimary,
                 textAlign = TextAlign.Center,
@@ -72,7 +80,8 @@ fun CastItem(
                 fontSize = 12.sp,
                 maxLines =  1,
                 modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(start = 5.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
             )
         }
 
@@ -84,7 +93,19 @@ fun CastItem(
 @Preview("dark theme", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CastItemPreview() {
+    val mockPerson = CastPerson(
+
+        id = 0,
+        name = "Gal Gadot",
+        photo_path= "",
+        character= "",
+        biography= "",
+        birthday= "",
+        known_for_department= "",
+        place_of_birth= "",
+
+    )
     MovieTheme {
-        GridMovie(title = "Gal Gadot", imageUrl = "")
+        CastItem(mockPerson, {})
     }
 }

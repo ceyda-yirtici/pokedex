@@ -18,9 +18,9 @@ import com.example.movieproject.ui.theme.MovieTheme
 @Composable
 fun Genre(
     modifier: Modifier = Modifier,
-    shape: Shape = MaterialTheme.shapes.medium,
-    color: Color = MovieTheme.colors.uiBackground,
-    contentColor: Color = MovieTheme.colors.textPrimary,
+    shape: Shape = MaterialTheme.shapes.small,
+    color: Color = MovieTheme.colors.brandSecondary,
+    contentColor: Color = MovieTheme.colors.textSecondary,
     border: BorderStroke? = null,
     elevation: Dp = 10.dp,
     content: @Composable () -> Unit
@@ -35,6 +35,28 @@ fun Genre(
         content = content
     )
 }
+
+@Composable
+fun Date(
+    modifier: Modifier = Modifier,
+    shape: Shape = MaterialTheme.shapes.small,
+    color: Color = MovieTheme.colors.textLink,
+    contentColor: Color = MovieTheme.colors.textSecondary,
+    border: BorderStroke? = null,
+    elevation: Dp = 10.dp,
+    content: @Composable () -> Unit
+) {
+    ListItemSurface(
+        modifier = modifier,
+        shape = shape,
+        color = color,
+        contentColor = contentColor,
+        elevation = elevation,
+        border = border,
+        content = content
+    )
+}
+
 @Preview("default")
 @Preview("dark theme", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview("large font", fontScale = 2f)

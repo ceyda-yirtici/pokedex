@@ -1,5 +1,6 @@
 package com.example.movieproject.ui.moviedetail
 
+import android.annotation.SuppressLint
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -9,9 +10,12 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -40,21 +44,36 @@ import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
-    private lateinit var binding: FragmentDetailBinding
-    private lateinit var favoritesManager: FavoritesManager
     private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
-    private var castRecyclerAdapter: CastRecyclerAdapter = CastRecyclerAdapter()
-    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
     private var pageCount = 1
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentDetailBinding.inflate(layoutInflater, container, false)
-        return binding.root
+
+        @SuppressLint("UnsafeRepeatOnLifecycleDetector")
+        override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+        ): View {
+            val composeView = ComposeView(requireContext())
+
+            val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
+            viewModel.displayCast(id)
+            viewModel.displayMovie(id)
+            viewModel.displayRecs(id, pageCount)
+
+            lifecycleScope.launch {
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    viewModel.uiState.collect { uiState ->
+                        composeView.setContent {
+                            MovieScreen(movieUiState = uiState, requireActivity().onBackPressedDispatcher)
+                        }
+                    }
+                }
+            }
+            return composeView
+
     }
+    /*
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao())
@@ -268,7 +287,7 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
         const val genreTextSize = 15F
     }
 
-
+*/
 }
 
 

@@ -19,7 +19,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val LightColorPalette = MovieColors(
     brand = Shadow5,
-    brandSecondary = Ocean3,
+    brandSecondary = BlueGray4,
     uiBackground = Neutral0,
     uiBorder = Neutral4,
     placeholderBackground = Neutral3,
@@ -27,12 +27,13 @@ private val LightColorPalette = MovieColors(
     textSecondary = Neutral7,
     textHelp = Neutral6,
     textInteractive = Neutral0,
-    textLink = Ocean11,
+    textLink = BluePurple2,
     iconSecondary = Neutral7,
     iconInteractive = Neutral0,
     iconInteractiveInactive = Neutral1,
     error = FunctionalRed,
     gradient6_1 = listOf(Shadow4, Ocean3, Shadow2, Ocean3, Shadow4),
+    gradientBackDrop =  listOf(Color.Transparent,Neutral0),
     gradient6_2 = listOf(Rose4, Lavender3, Rose2, Lavender3, Rose4),
     gradient3_1 = listOf(Shadow2, Ocean3, Shadow4),
     gradient3_2 = listOf(Rose2, Lavender3, Rose4),
@@ -46,7 +47,7 @@ private val LightColorPalette = MovieColors(
 
 private val DarkColorPalette = MovieColors(
     brand = Shadow1,
-    brandSecondary = Ocean2,
+    brandSecondary = BlueGray4,
     uiBackground = Neutral7,
     placeholderBackground = Neutral3,
     uiBorder = Neutral3,
@@ -54,13 +55,14 @@ private val DarkColorPalette = MovieColors(
     textPrimary = Shadow1,
     textSecondary = Neutral0,
     textHelp = Neutral1,
-    textInteractive = Neutral7,
-    textLink = Ocean2,
+    textInteractive = Neutral0,
+    textLink = BluePurple2,
     iconPrimary = Shadow1,
     iconSecondary = Neutral0,
     iconInteractive = Neutral7,
     iconInteractiveInactive = Neutral6,
     error = FunctionalRedDark,
+    gradientBackDrop =  listOf(Color.Transparent, Neutral7.copy(0.1f),Neutral7),
     gradient6_1 = listOf(Shadow5, Ocean7, Shadow9, Ocean7, Shadow5),
     gradient6_2 = listOf(Rose11, Lavender7, Rose8, Lavender7, Rose11),
     gradient3_1 = listOf(Shadow9, Ocean7, Shadow5),
@@ -107,6 +109,7 @@ object MovieTheme {
  */
 @Stable
 class MovieColors(
+    gradientBackDrop: List<Color>,
     gradient6_1: List<Color>,
     gradient6_2: List<Color>,
     gradient3_1: List<Color>,
@@ -138,6 +141,8 @@ class MovieColors(
     isDark: Boolean,
     filledHeart: Color
 ) {
+    var gradientBackDrop by mutableStateOf(gradientBackDrop)
+        private set
     var gradient6_1 by mutableStateOf(gradient6_1)
         private set
     var gradient6_2 by mutableStateOf(gradient6_2)
@@ -232,6 +237,7 @@ class MovieColors(
     }
 
     fun copy(): MovieColors = MovieColors(
+        gradientBackDrop= gradientBackDrop,
         gradient6_1 = gradient6_1,
         gradient6_2 = gradient6_2,
         gradient3_1 = gradient3_1,

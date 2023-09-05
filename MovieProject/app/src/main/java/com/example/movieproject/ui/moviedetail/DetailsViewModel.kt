@@ -13,10 +13,15 @@ import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.model.MovieList
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
+import com.example.movieproject.ui.cast.CastViewModel
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,9 +45,13 @@ class DetailsViewModel @Inject constructor(
     private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
     val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
 
+
+    private val _uiState = MutableStateFlow(MovieUiState())
+    val uiState: StateFlow<MovieUiState> = _uiState.asStateFlow()
+
     data class MovieUiState(
 
-        val movieList: ArrayList<MovieDetail> = arrayListOf(),
+        val movieList: MutableList<MovieDetail> = arrayListOf(),
         val movie: MovieDetail? = null,
         val castList: ArrayList<CastPerson> = arrayListOf(),
         val loading: Boolean = true,
@@ -56,24 +65,28 @@ class DetailsViewModel @Inject constructor(
         return movieDao
     }
     private fun callMovieRepos(id:Int) {
-
-
         viewModelScope.launch(Dispatchers.IO) {
-            val movie = try {
-                movieService.getMovie(id,BundleKeys.API_KEY)
+            try {
+                val movie =  movieService.getMovie(id,BundleKeys.API_KEY)
+
+                _uiState.update {
+                    it.copy(movie = movie,loading = false)
+                }
             }
             catch  (exception: Exception) {
-                ""
+                _uiState.update {
+                    it.copy(movie = null)
+                }
             }
-            liveDataLoading.postValue(false)
-            _liveDataMovie.postValue(movie as MovieDetail?)
         }
     }
     private fun callCastRepos(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val credit = movieService.getCredit(id, BundleKeys.API_KEY)
-                _liveDataCast.postValue(credit.cast as MutableList<CastPerson>?)
+                _uiState.update {
+                    it.copy(castList = credit.cast)
+                }
             } catch (exception: Exception) {
                 Log.e("call cast", "Exception: ${exception.message}")
             }
@@ -90,7 +103,9 @@ class DetailsViewModel @Inject constructor(
                     addAll(newMovieList.results)
                 }
 
-                _liveDataMovieList.postValue(updatedList)
+                _uiState.update {
+                    it.copy(movieList = updatedList)
+                }
             } catch (exception: Exception) {
                 // Handle exception
             }

@@ -51,7 +51,3 @@ class NetworkModule {
     }
 
 }
-@Component(modules = [NetworkModule::class])
-interface AppComponent {
-    fun inject(viewModel: MoviesViewModel)
-}
