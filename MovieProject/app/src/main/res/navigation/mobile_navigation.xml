@@ -43,6 +43,8 @@
 
         <action
             android:id="@+id/action_cast"
+            android:name="com.example.movieproject.ui.cast.CastFragment"
+            android:label="CastFragment"
             app:destination="@id/castFragment" />
 
 
@@ -68,11 +70,11 @@
 
 
     </fragment>
+
     <fragment
         android:id="@+id/castFragment"
         android:name="com.example.movieproject.ui.cast.CastFragment"
-        android:label="CastFragment"
-        tools:layout="@layout/fragment_cast">
+        android:label="CastFragment">
 
     <action
         android:id="@+id/action_detail"

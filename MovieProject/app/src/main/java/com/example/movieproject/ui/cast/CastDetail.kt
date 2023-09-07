@@ -38,7 +38,7 @@ import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.cast.CastViewModel
 import com.example.movieproject.ui.components.GridMovie
-import com.example.movieproject.ui.components.ListMovie
+import com.example.movieproject.ui.components.LoadingScreen
 import com.example.movieproject.utils.BundleKeys
 import java.text.SimpleDateFormat
 import java.util.*
@@ -117,7 +117,7 @@ fun CastScreen(
 
                 }
             } else {
-                // Handle loading or error state here
+                castUiState?.loading?.let { LoadingScreen(isLoading = it) }
             }
         }
     }
@@ -187,13 +187,17 @@ fun CastInfo(
                             val backIcon = Icons.Filled.ArrowBack
                             val buttonColor = MovieTheme.colors.iconInteractive
                             Box(
-                                modifier = Modifier.size(80.dp).background(buttonColor)
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .background(buttonColor)
                             ) {
 
                                 Icon(
                                     imageVector = backIcon,
                                     tint = MovieTheme.colors.textSecondary,
-                                    modifier = Modifier.size(80.dp).padding(8.dp),
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .padding(8.dp),
                                     contentDescription = "Back",
                                 )
                             }

@@ -18,11 +18,9 @@ import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
-class CastFragment(castId: Int) : Fragment() {
+class CastFragment: Fragment() {
 
     val viewModel: CastViewModel by viewModels(ownerProducer = { this@CastFragment })
-    val castId : Int = castId
-
     @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,8 +28,8 @@ class CastFragment(castId: Int) : Fragment() {
     ): View {
         val composeView = ComposeView(requireContext())
 
-        //val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
-        viewModel.displayCast(castId)
+        val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
+        viewModel.displayCast(id)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

@@ -53,15 +53,15 @@ fun CastItem(
             Image(
                 painter = rememberAsyncImagePainter(
                     model = photoUrl,
-                    error = painterResource(id = R.drawable.baseline_photo_220dp),
-                    placeholder = painterResource(id = R.drawable.baseline_photo_220dp)
+                    error = painterResource(id = R.drawable.baseline_person_24),
+                    placeholder = painterResource(id = R.drawable.baseline_person_24)
                 ),
                 alignment =  Alignment.Center,
                 contentDescription = "Grid Cast Photo",
                 contentScale = ContentScale.Crop, // Center-crop the image
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(start = 5.dp, end = 10.dp)
+                    .padding(start = 10.dp, end = 10.dp)
                     .background(
                         color = Color.Transparent
                     )

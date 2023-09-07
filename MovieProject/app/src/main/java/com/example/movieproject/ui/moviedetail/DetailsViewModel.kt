@@ -6,6 +6,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.GenreList
 import com.example.movieproject.model.MovieCredit
@@ -56,13 +58,14 @@ class DetailsViewModel @Inject constructor(
         val castList: ArrayList<CastPerson> = arrayListOf(),
         val loading: Boolean = true,
     )
+/*
+    val moviePager = Pager(PagingConfig()) {
+        MoviePagingSource(query.value, repo)
+    }.flow*/
 
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
-    }
-    fun getMovieDao(): MovieDao {
-        return movieDao
     }
     private fun callMovieRepos(id:Int) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -126,3 +129,4 @@ class DetailsViewModel @Inject constructor(
 
 
 }
+

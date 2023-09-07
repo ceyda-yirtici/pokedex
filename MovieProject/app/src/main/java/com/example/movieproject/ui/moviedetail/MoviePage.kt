@@ -1,6 +1,7 @@
 package com.example.movieproject.ui.moviedetail
 
 import android.content.res.Configuration
+import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.foundation.Image
@@ -37,10 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.*
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -56,10 +54,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.findNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.movieproject.R
 import com.example.movieproject.model.CastPerson
@@ -70,6 +69,7 @@ import com.example.movieproject.ui.components.CastItem
 import com.example.movieproject.ui.components.Date
 import com.example.movieproject.ui.components.Genre
 import com.example.movieproject.ui.components.GridMovie
+import com.example.movieproject.ui.components.LoadingScreen
 import com.example.movieproject.ui.theme.MovieTheme
 import com.example.movieproject.utils.BundleKeys
 import java.util.Locale
@@ -119,6 +119,7 @@ fun CastScreenPreview() {
                     movieList = ArrayList(arrayListOf(mockMovie)),
                     onBackPressedDispatcher = null,
                     castList = ArrayList(arrayListOf(mockCast)),
+                    navController = rememberNavController(),
 
                 )
             }
@@ -127,37 +128,29 @@ fun CastScreenPreview() {
 
 }
 
-@Composable
-fun MovieNavHost(
-    castId: Int,
-) {
-
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "cast") {
-
-        composable("cast") {
-           CastFragment(castId)
-        }
-    }
-}
 
 
 
 @Composable
 fun MovieScreen(
     movieUiState: DetailsViewModel.MovieUiState?,
-    onBackPressedDispatcher: OnBackPressedDispatcher
+    onBackPressedDispatcher: OnBackPressedDispatcher,
+    navController: NavController
 ) {
 
     val movie = movieUiState?.movie
     val movieList = movieUiState?.movieList
     val castList = movieUiState?.castList
+    val loading = movieUiState?.loading
     MovieTheme {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MovieTheme.colors.uiBackground)
         ) {
+
+
             if (movie != null) {
 
                 LazyColumn(
@@ -166,17 +159,25 @@ fun MovieScreen(
                 ) {
                     item {
                         MovieInfo(
-                            movie = movie, movieList = movieList,
-                            onBackPressedDispatcher = onBackPressedDispatcher, castList = castList)
+                            movie = movie,
+                            movieList = movieList,
+                            onBackPressedDispatcher = onBackPressedDispatcher,
+                            castList = castList,
+                            navController
+                        )
                     }
-
                 }
             } else {
-                // Handle loading or error state here
+                loading?.let {
+                    LoadingScreen(
+                        isLoading = it,
+                    )
+                }
             }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class
@@ -187,6 +188,7 @@ fun MovieInfo(
     movieList: MutableList<MovieDetail>?,
     onBackPressedDispatcher: OnBackPressedDispatcher?,
     castList: ArrayList<CastPerson>?,
+    navController: NavController,
 ) {
 
     Column() {
@@ -374,7 +376,7 @@ fun MovieInfo(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp)
             )
         }
-            CastListDisplay (castList = castList)
+            CastListDisplay (castList = castList, navController)
             Spacer(modifier = Modifier.height(16.dp))
             MovieListDisplay(movieList = movieList)
 
@@ -386,7 +388,10 @@ fun MovieInfo(
 }
 
 @Composable
-fun CastListDisplay(castList: ArrayList<CastPerson>?) {
+fun CastListDisplay(castList: ArrayList<CastPerson>?, navController: NavController) {
+
+    var clicked by remember { mutableStateOf(-1) }
+    val bundle by remember { mutableStateOf(Bundle())}
     if (!castList.isNullOrEmpty()) {
         Text(
             text = "Cast",
@@ -395,29 +400,30 @@ fun CastListDisplay(castList: ArrayList<CastPerson>?) {
             fontSize = 22.sp,
             modifier = Modifier.padding(16.dp)
         )
-        var selectedIndex by remember { mutableIntStateOf(-1) }
         LazyRow(
             modifier = Modifier.fillMaxHeight(),
             userScrollEnabled = true,
             verticalAlignment =  Alignment.CenterVertically,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             state = rememberLazyListState(),
 
             ) {
             items(items = castList, itemContent = { item ->
 
-                CastItem(item, onItemClick = {
-
-                    MovieNavHost(castId = item.id
-                    )
-                }
+                CastItem(item, onItemClick = {clicked = item.id})
 
 
             })
 
         }
+        if(clicked != -1){
+            bundle.apply {
+                putInt(BundleKeys.REQUEST_PERSON_ID, clicked)
+                navController.navigate(R.id.action_cast, bundle)
 
+            }
+        }
 
     }
 }
@@ -438,7 +444,7 @@ fun MovieListDisplay(movieList: MutableList<MovieDetail>?) {
             modifier = Modifier.fillMaxHeight(),
             userScrollEnabled = true,
             verticalAlignment =  Alignment.CenterVertically,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             state = rememberLazyListState(),
 

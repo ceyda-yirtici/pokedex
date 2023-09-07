@@ -1,15 +1,10 @@
 package com.example.movieproject.ui.moviedetail
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.TextView
-import androidx.activity.addCallback
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -17,30 +12,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.Target
 import com.example.movieproject.R
-import com.example.movieproject.databinding.ActivityMainBinding
-import com.example.movieproject.databinding.FragmentDetailBinding
-import com.example.movieproject.model.CastPerson
-import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.ui.FavoritesManager
-import com.example.movieproject.ui.MovieRecyclerAdapter
-import com.example.movieproject.ui.cast.CastFragment
 import com.example.movieproject.utils.BundleKeys
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.chip.ChipGroup
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
@@ -60,12 +35,15 @@ class DetailMovieFragment : Fragment(R.layout.fragment_detail) {
             viewModel.displayCast(id)
             viewModel.displayMovie(id)
             viewModel.displayRecs(id, pageCount)
+            val navController = findNavController()
 
             lifecycleScope.launch {
                 repeatOnLifecycle(Lifecycle.State.STARTED) {
                     viewModel.uiState.collect { uiState ->
                         composeView.setContent {
-                            MovieScreen(movieUiState = uiState, requireActivity().onBackPressedDispatcher)
+                            MovieScreen(movieUiState = uiState,
+                                requireActivity().onBackPressedDispatcher,
+                                navController,)
                         }
                     }
                 }
