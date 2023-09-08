@@ -55,16 +55,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.fragment.findNavController
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.rememberAsyncImagePainter
 import com.example.movieproject.R
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.model.MovieGenre
-import com.example.movieproject.ui.cast.CastFragment
 import com.example.movieproject.ui.components.CastItem
 import com.example.movieproject.ui.components.Date
 import com.example.movieproject.ui.components.Genre
@@ -116,7 +114,7 @@ fun CastScreenPreview() {
             item {
                 MovieInfo(
                     movie = mockMovie,
-                    movieList = ArrayList(arrayListOf(mockMovie)),
+                    movieList = mockMovie as LazyPagingItems<MovieDetail>,
                     onBackPressedDispatcher = null,
                     castList = ArrayList(arrayListOf(mockCast)),
                     navController = rememberNavController(),
@@ -139,7 +137,7 @@ fun MovieScreen(
 ) {
 
     val movie = movieUiState?.movie
-    val movieList = movieUiState?.movieList
+    val movieList = movieUiState?.movieList?.collectAsLazyPagingItems()
     val castList = movieUiState?.castList
     val loading = movieUiState?.loading
     MovieTheme {
@@ -185,7 +183,7 @@ fun MovieScreen(
 @Composable
 fun MovieInfo(
     movie: MovieDetail,
-    movieList: MutableList<MovieDetail>?,
+    movieList: LazyPagingItems<MovieDetail>?,
     onBackPressedDispatcher: OnBackPressedDispatcher?,
     castList: ArrayList<CastPerson>?,
     navController: NavController,
@@ -431,8 +429,8 @@ fun CastListDisplay(castList: ArrayList<CastPerson>?, navController: NavControll
 
 
 @Composable
-fun MovieListDisplay(movieList: MutableList<MovieDetail>?) {
-    if (!movieList.isNullOrEmpty()) {
+fun MovieListDisplay(movieList: LazyPagingItems<MovieDetail>?) {
+    if (movieList != null && movieList.itemCount != 0) {
         Text(
             text = "Recommendations",
             color = MovieTheme.colors.textPrimary,
@@ -449,8 +447,10 @@ fun MovieListDisplay(movieList: MutableList<MovieDetail>?) {
             state = rememberLazyListState(),
 
             ) {
-            items(items = movieList, itemContent = { item ->
-                GridMovie(item)
+            items(items = movieList.itemSnapshotList, itemContent = { item ->
+                item?.let {
+                    GridMovie(item)
+                }
 
             })
         }

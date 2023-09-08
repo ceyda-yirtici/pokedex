@@ -8,21 +8,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.movieproject.model.CastPerson
-import com.example.movieproject.model.GenreList
-import com.example.movieproject.model.MovieCredit
 import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.model.MovieList
 import com.example.movieproject.room.AppDatabaseProvider
+import com.example.movieproject.service.RecPagingSource
 import com.example.movieproject.service.MovieService
-import com.example.movieproject.ui.cast.CastViewModel
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -53,21 +54,20 @@ class DetailsViewModel @Inject constructor(
 
     data class MovieUiState(
 
-        val movieList: MutableList<MovieDetail> = arrayListOf(),
+        val movieList: Flow<PagingData<MovieDetail>> = flowOf(),
         val movie: MovieDetail? = null,
         val castList: ArrayList<CastPerson> = arrayListOf(),
         val loading: Boolean = true,
     )
-/*
-    val moviePager = Pager(PagingConfig()) {
-        MoviePagingSource(query.value, repo)
-    }.flow*/
+
 
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
     }
     private fun callMovieRepos(id:Int) {
+
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val movie =  movieService.getMovie(id,BundleKeys.API_KEY)
@@ -97,14 +97,21 @@ class DetailsViewModel @Inject constructor(
     }
 
 
+    fun getAllMovies(id: Int): Flow<PagingData<MovieDetail>> {
+
+        return Pager(
+            PagingConfig(pageSize = 20)
+        ) {
+            RecPagingSource(movieService, id)
+        }.flow.cachedIn(viewModelScope)
+    }
+
     private fun callRecRepos(id: Int, page:Int) {
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val newMovieList = movieService.getRecommendations(id, BundleKeys.API_KEY, page)
-                val currentList = _liveDataMovieList.value ?: emptyList()
-                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
-                    addAll(newMovieList.results)
-                }
+
+                val updatedList = getAllMovies(id)
 
                 _uiState.update {
                     it.copy(movieList = updatedList)
