@@ -2,18 +2,29 @@ package com.example.movieproject.ui.movies
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.movieproject.model.GenreList
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
+import com.example.movieproject.service.PopularMoviesPagingSource
+import com.example.movieproject.ui.GenreMapper
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,88 +36,70 @@ class MoviesViewModel  @Inject constructor(
 
     private val movieDao: MovieDao
 
-    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
-    val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
+    data class PopularMoviesUiState(
 
-    private val _liveDataViewType = MutableLiveData<Int>()
-    val liveDataViewType: LiveData<Int> = _liveDataViewType
-
-    val liveDataLoading = MutableLiveData<Boolean>()
-
-    private val _liveDataLikedMovieIds = MutableLiveData<List<Int>>()
-    val liveDataLikedMovieIds: LiveData<List<Int>> = _liveDataLikedMovieIds
+        val movieList: Flow<PagingData<MovieDetail>> = flowOf(),
+        val genreMapper: HashMap<Int,String> = GenreMapper.genreMapper,
+        val favoritesList: MutableList<Int> = mutableListOf(),
+        var viewType: Int = 1,
+        val loading: Boolean = true,
 
 
-    private val _liveDataGenreList = MutableLiveData<HashMap<Int, String>>()
-    val liveDataGenreList: LiveData<HashMap<Int, String>> = _liveDataGenreList
+        )
 
-    private val _liveDataPageNumber = MutableLiveData(1)
+
+    private val _uiState = MutableStateFlow(PopularMoviesUiState())
+    val uiState: StateFlow<PopularMoviesUiState> = _uiState.asStateFlow()
+
+
+
+
+
+    fun setViewType(listViewType: Int) {
+        _uiState.update {
+            it.copy(viewType = listViewType)
+        }
+    }
 
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
         viewModelScope.launch(Dispatchers.IO) {
-            _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
+            _uiState.update {
+                it.copy(favoritesList = movieDao.getAllByIds() as MutableList<Int>)
+            }
         }
-        _liveDataPageNumber.value?.let {
-            callMovieRepos(it)
-        }
+        callMovieRepos()
         callGenreRepos()
     }
 
 
-    fun setLiveDataMovieList(list: MutableList<MovieDetail>){
-        _liveDataMovieList.value = list
+
+    private fun getAllMovies(): Flow<PagingData<MovieDetail>> {
+
+        return Pager(
+            PagingConfig(pageSize = 20)
+        ) {
+            PopularMoviesPagingSource(movieService, uiState.value.favoritesList)
+        }.flow.cachedIn(viewModelScope)
     }
 
-    fun updateLikedMovieIds() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _liveDataLikedMovieIds.postValue(movieDao.getAllByIds())
-        }
-    }
+    private fun callMovieRepos() {
 
-    fun setPageNumber(count:Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _liveDataPageNumber.postValue(count)
-        }
-    }
-    private fun callMovieRepos(page: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val newMovieList = movieService.getMovieList(BundleKeys.API_KEY, page)
-                val currentList = _liveDataMovieList.value ?: emptyList()
-                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
-                    addAll(newMovieList.results)
-                }
 
-                _liveDataMovieList.postValue(updatedList)
-                liveDataLoading.postValue(false)
-                _liveDataViewType.postValue(1)
+                val updatedList = getAllMovies()
+
+                _uiState.update {
+                    it.copy(movieList = updatedList)
+                }
             } catch (exception: Exception) {
                 // Handle exception
             }
         }
     }
-    private fun callSearchRepos(query:String, page: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val newMovieList = movieService.getSearchList(BundleKeys.API_KEY, page, query)
-                val currentList = _liveDataMovieList.value ?: emptyList()
-                val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
-                    addAll(newMovieList.results)
-                }
 
-                _liveDataMovieList.postValue(updatedList)
-                liveDataLoading.postValue(false)
-                _liveDataViewType.postValue(1)
-            } catch (exception: Exception) {
-                // Handle exception
-            }
-        }
-    }
-    fun searchMovies(query:String, page: Int){
-        callSearchRepos(query, page)
-    }
     private fun callGenreRepos() {
         viewModelScope.launch(Dispatchers.IO) {
            try {
@@ -115,27 +108,22 @@ class MoviesViewModel  @Inject constructor(
                 for (genre in genreList.genres) {
                     genreMap[genre.id] = genre.genre_name
                 }
-               _liveDataGenreList.postValue(genreMap)
+               _uiState.update {
+                   it.copy(genreMapper = genreMap)
+               }
             }
             catch  (exception: Exception) {
                 Log.e("call", "genreRepos")
-                _liveDataGenreList.postValue(HashMap())
             }
         }
     }
 
-    fun displayGroup(page:Int) {
-            callMovieRepos(page)
+    fun displayGroup() {
+            callMovieRepos()
     }
 
     fun getMovieDao(): MovieDao {
         return movieDao
-
-    }
-
-    fun setViewType(listViewType: Int) {
-        _liveDataViewType.postValue(listViewType)
-
     }
 
 

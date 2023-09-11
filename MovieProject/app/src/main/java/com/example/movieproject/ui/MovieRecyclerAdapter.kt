@@ -31,11 +31,6 @@ import java.util.Locale
 class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieViewHolder>() {
 
     private var movieList: MutableList<MovieDetail> = mutableListOf()
-    companion object { var genreMapper : HashMap<Int, String> = HashMap()
-        fun sendGenreList(it: HashMap<Int, String>) {
-            genreMapper = it
-        }
-    }
     private var likedMovieIds: List<Int> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
     private var onBottomReachedListener: OnBottomReachedListener? = null
@@ -187,16 +182,10 @@ class MovieRecyclerAdapter : RecyclerView.Adapter<MovieRecyclerAdapter.MovieView
                 onBottomReachedListener?.onBottomReached(position)
             }
             if (viewMovieType == 1) {
-                val genreNamesOfTheMovies = arrayListOf<String>()
+                var genreNamesOfTheMovies = arrayListOf<String>()
 
                 if(movieList[position].genres.isNullOrEmpty())
-                    for (genreId in movieList[position].genre_ids) {
-
-                        val genreName = genreMapper[genreId]
-                        if (genreName != null) {
-                            genreNamesOfTheMovies.add(genreName)
-                        }
-                    }
+                    genreNamesOfTheMovies = GenreMapper.map(movieList[position])
                 else movieList[position].genres?.let { genreNamesOfTheMovies.addAll(it.map { it.genre_name }) }
                 decideAddingGenreView(holder, genreNamesOfTheMovies)
             }

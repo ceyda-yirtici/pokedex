@@ -36,19 +36,6 @@ class DetailsViewModel @Inject constructor(
 
     private val movieDao: MovieDao
 
-
-    private val _liveDataMovie = MutableLiveData<MovieDetail>()
-    val liveDataMovie: LiveData<MovieDetail> = _liveDataMovie
-
-    val liveDataLoading = MutableLiveData<Boolean>()
-
-    private val _liveDataCast = MutableLiveData<MutableList<CastPerson>>(mutableListOf())
-    val liveDataCast: LiveData<MutableList<CastPerson>> = _liveDataCast
-
-    private val _liveDataMovieList = MutableLiveData<MutableList<MovieDetail>>(mutableListOf())
-    val liveDataMovieList: LiveData<MutableList<MovieDetail>> = _liveDataMovieList
-
-
     private val _uiState = MutableStateFlow(MovieUiState())
     val uiState: StateFlow<MovieUiState> = _uiState.asStateFlow()
 
@@ -64,6 +51,10 @@ class DetailsViewModel @Inject constructor(
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
+    }
+
+    fun getMovieDao() : MovieDao {
+        return movieDao
     }
     private fun callMovieRepos(id:Int) {
 
@@ -106,7 +97,7 @@ class DetailsViewModel @Inject constructor(
         }.flow.cachedIn(viewModelScope)
     }
 
-    private fun callRecRepos(id: Int, page:Int) {
+    private fun callRecRepos(id: Int) {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -124,8 +115,8 @@ class DetailsViewModel @Inject constructor(
 
 
 
-    fun displayRecs(id:Int, page:Int) {
-        callRecRepos(id, page)
+    fun displayRecs(id:Int) {
+        callRecRepos(id)
     }
     fun displayMovie(id:Int) {
             callMovieRepos(id)

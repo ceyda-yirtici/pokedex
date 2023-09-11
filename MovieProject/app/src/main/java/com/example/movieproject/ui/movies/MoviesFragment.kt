@@ -1,54 +1,61 @@
 package com.example.movieproject.ui.movies
 
-import android.content.res.Configuration
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import androidx.appcompat.widget.SearchView
-import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavHostController
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.movieproject.R
-import com.example.movieproject.databinding.FragmentMoviesBinding
-import com.example.movieproject.model.MovieDetail
-import com.example.movieproject.ui.moviedetail.DetailMovieFragment
-import com.example.movieproject.utils.BundleKeys
 import com.example.movieproject.ui.FavoritesManager
-import com.example.movieproject.ui.MovieRecyclerAdapter
+import com.example.movieproject.ui.GenreMapper
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+
 @AndroidEntryPoint
-class MoviesFragment() : Fragment(){
+class MoviesFragment : Fragment() {
 
-    private lateinit var binding: FragmentMoviesBinding
     private lateinit var favoritesManager: FavoritesManager
-    private var pageCount = 1
     private val viewModel: MoviesViewModel by viewModels(ownerProducer = { this })
-    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
-    private var heartResource: Int = R.drawable.heart_shape_grey
-    private var listViewType = initialView
-    private var userQuery = ""
 
-
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d("view", "create")
-        binding = FragmentMoviesBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+        val composeView = ComposeView(requireContext())
+        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao(), viewModel.viewModelScope)
+        val navController = findNavController()
+        viewModel.displayGroup()
 
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                viewModel.uiState.collect { uiState ->
+                    GenreMapper.sendGenreList(uiState.genreMapper)
+                    composeView.setContent {
+                        PopularMoviesScreen(
+                            uiState,
+                            navController,
+                            favoritesManager
+                        )
+                    }
+                }
+
+            }
+        }
+        return composeView
+
+    }
+}
+/*
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         super.onViewCreated(view, savedInstanceState)
@@ -281,5 +288,5 @@ class MoviesFragment() : Fragment(){
 
 
 
-}
+}*/
 

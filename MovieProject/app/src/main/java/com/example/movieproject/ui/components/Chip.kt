@@ -30,7 +30,7 @@ fun Genre(
         shape = shape,
         color = color,
         contentColor = contentColor,
-        elevation = elevation,
+        elevation = 10.dp,
         border = border,
         content = content
     )

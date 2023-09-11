@@ -1,5 +1,6 @@
 package com.example.movieproject.ui.favorites
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,9 +8,12 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,8 +22,8 @@ import com.example.movieproject.R
 import com.example.movieproject.databinding.FragmentFavoritesBinding
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
-import com.example.movieproject.room.Movie
 import com.example.movieproject.ui.FavoritesManager
+import com.example.movieproject.ui.GenreMapper
 import com.example.movieproject.ui.moviedetail.DetailMovieFragment
 import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.utils.BundleKeys
@@ -42,14 +46,35 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
     private lateinit var recyclerView: RecyclerView
 
 
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentFavoritesBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+        val composeView = ComposeView(requireContext())
+        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao(), viewModel.viewModelScope)
+        val navController = findNavController()
+        viewModel.displayGroup()
 
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                viewModel.uiState.collect { uiState ->
+                    composeView.setContent {
+                        FavoritesScreen(
+                            uiState,
+                            navController,
+                            favoritesManager
+                        )
+                    }
+                }
+
+            }
+        }
+        return composeView
+    }
+}/*
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = view.findViewById<TextView>(R.id.toolbarFavorites)
@@ -57,7 +82,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
         val database = AppDatabaseProvider.getAppDatabase(requireActivity().application)
         movieDao = database.movieDao()
-        favoritesManager = FavoritesManager.getInstance(movieDao)
+        favoritesManager = FavoritesManager.getInstance(movieDao, viewModel.viewModelScope)
         initView(view)
         listenViewModel()
     }
@@ -169,4 +194,4 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
         }
 
     }
-}
+}*/

@@ -6,17 +6,23 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.movieproject.model.GenreList
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
-import com.example.movieproject.ui.FavoritesManager
+import com.example.movieproject.ui.movies.MoviesViewModel
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -29,18 +35,20 @@ class FavoritesViewModel @Inject constructor(
 
     private val movieDao: MovieDao
 
-    val liveDataLoading = MutableLiveData<Boolean>()
+    private val _uiState = MutableStateFlow(FavoriteMoviesUiState())
+    val uiState: StateFlow<FavoriteMoviesUiState> = _uiState.asStateFlow()
 
-    private val _liveDataFavoritesList = MutableLiveData<MutableList<MovieDetail>>()
-    val liveDataFavoritesList: LiveData<MutableList<MovieDetail>> = _liveDataFavoritesList
 
-    private var _databaseList = MutableStateFlow<HashMap<Int, Boolean>>(HashMap())
-    var databaseList: StateFlow<HashMap<Int, Boolean>> = _databaseList
+    data class FavoriteMoviesUiState(
+
+        val movieList: ArrayList<MovieDetail> = arrayListOf(),
+        val loading: Boolean = true,
+        )
 
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
-        createList()
+        callMovieRepos()
 
 
     }
@@ -48,77 +56,36 @@ class FavoritesViewModel @Inject constructor(
         return movieDao
     }
 
-    private fun callMovieRepos(movies: MutableList<Int>) {
+    private fun callMovieRepos() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val movieList = movies.map { movieId ->
+                val movieList = movieDao.getAllByIds().map { movieId ->
                     movieService.getMovie(movieId, BundleKeys.API_KEY)
                 }
-                val currentList = _liveDataFavoritesList.value ?: emptyList()
+                movieList.map { it.heart_tag = "filled" }
+                val currentList = arrayListOf<MovieDetail>()
                 val updatedList: MutableList<MovieDetail> = currentList.toMutableList().apply {
                     addAll(movieList)
                 }
-                _liveDataFavoritesList.postValue(updatedList)
+                _uiState.update { it.copy(movieList = updatedList as ArrayList<MovieDetail>,
+                loading = false) }
+
+
             } catch (exception: Exception) {
-                _liveDataFavoritesList.postValue(arrayListOf())
-            }
-            liveDataLoading.postValue(false)
-        }
-    }
-
-
-    fun setFavoritesList() {
-        val favoritesList = liveDataFavoritesList.value ?: mutableListOf()
-        val databaseKeys = databaseList.value.keys
-
-        val updatedFavoritesList = favoritesList.filter { movie ->
-            databaseKeys.contains(movie.id)
-        }.toMutableList()
-
-        _liveDataFavoritesList.value = updatedFavoritesList
-    }
-
-
-    fun createList() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val hashMap = HashMap<Int, Boolean>()
-                for (id in movieDao.getAllByIds()) {
-                    hashMap[id] = _databaseList.value[id] == true
-                }
-                _databaseList.value = hashMap
-                Log.d("ids", databaseList.value.toString())
 
             }
-            setFavoritesList()
-            displayGroup()
-
-
         }
     }
-    fun displayGroup() {
-        val nextTenKeys = setList()
-
-        if (nextTenKeys.isNotEmpty()) {
-            callMovieRepos(nextTenKeys)
-        }
-
+    fun displayGroup(){
+        callMovieRepos()
     }
 
-    private fun setList(): ArrayList<Int> {
-
-        val nextTenKeys = ArrayList<Int>(arrayListOf())
-        val filteredValues = databaseList.value.filterValues { !it }.entries.take(10)
-        filteredValues.forEach { entry ->
-            nextTenKeys.add(entry.key)
-            databaseList.value[entry.key] = true
-        }
 
 
 
-        Log.d("nextTenKeys", nextTenKeys.toString())
-        return nextTenKeys
-    }
+
+
+
 }
 
 

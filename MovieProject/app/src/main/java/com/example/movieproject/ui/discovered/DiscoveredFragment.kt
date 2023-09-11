@@ -8,6 +8,7 @@ import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.movieproject.R
@@ -46,7 +47,10 @@ class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
         super.onViewCreated(view, savedInstanceState)
         val toolbarTitle = binding.toolbarDiscovered
         toolbarTitle.text = "Discover"
-        favoritesManager = FavoritesManager.getInstance(viewModel.getDao())
+        favoritesManager = FavoritesManager.getInstance(
+            viewModel.getDao(),
+            viewModel.viewModelScope
+        )
         initView(view)
         listenViewModel()
     }
