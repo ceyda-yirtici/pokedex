@@ -2,7 +2,6 @@ package com.example.movieproject.ui.moviedetail
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -45,9 +44,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,6 +60,7 @@ import com.example.movieproject.R
 import com.example.movieproject.model.CastPerson
 import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.model.MovieGenre
+import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.ui.components.CastItem
 import com.example.movieproject.ui.components.Date
 import com.example.movieproject.ui.components.Genre
@@ -118,6 +116,7 @@ fun CastScreenPreview() {
                     onBackPressedDispatcher = null,
                     castList = ArrayList(arrayListOf(mockCast)),
                     navController = rememberNavController(),
+                    favoritesManager = null,
 
                 )
             }
@@ -133,7 +132,8 @@ fun CastScreenPreview() {
 fun MovieScreen(
     movieUiState: DetailsViewModel.MovieUiState?,
     onBackPressedDispatcher: OnBackPressedDispatcher,
-    navController: NavController
+    navController: NavController,
+    favoritesManager: FavoritesManager
 ) {
 
     val movie = movieUiState?.movie
@@ -161,7 +161,8 @@ fun MovieScreen(
                             movieList = movieList,
                             onBackPressedDispatcher = onBackPressedDispatcher,
                             castList = castList,
-                            navController
+                            navController,
+                            favoritesManager
                         )
                     }
                 }
@@ -187,6 +188,7 @@ fun MovieInfo(
     onBackPressedDispatcher: OnBackPressedDispatcher?,
     castList: ArrayList<CastPerson>?,
     navController: NavController,
+    favoritesManager: FavoritesManager?,
 ) {
 
     Column() {
@@ -262,14 +264,7 @@ fun MovieInfo(
                     .padding(start = 16.dp, end = 70.dp, top = 16.dp, bottom = 16.dp,)
                     .align(Alignment.CenterStart)
             )
-
-            val contextForToast = LocalContext.current.applicationContext
-            var heartIcon: ImageVector =
-                if (movie.heart_tag == "outline") Icons.Outlined.FavoriteBorder
-                else Icons.Filled.Favorite
-            val heartTint: Color =
-                if (movie.heart_tag == "outline") MovieTheme.colors.iconInteractiveInactive
-                else MovieTheme.colors.filledHeart
+            var heartTag by remember { mutableStateOf(movie.heart_tag) }
 
             IconButton(
                 modifier = Modifier
@@ -277,13 +272,15 @@ fun MovieInfo(
                     .align(Alignment.TopEnd)
                     .padding(15.dp),
                 onClick = {
-                    Toast.makeText(contextForToast, "Click!", Toast.LENGTH_SHORT).show()
-                    if (movie.heart_tag == "filled") {
+                    if (movie.heart_tag == "filled"){
+                        favoritesManager?.removeMovieFromDB(movie, null)
                         movie.heart_tag = "outline"
-                        heartIcon = Icons.Outlined.FavoriteBorder
-                    } else {
-                        heartIcon = Icons.Filled.Favorite
+                        heartTag = "outline"
+                    }
+                    else{
+                        favoritesManager?.addMovieToDB(movie, null)
                         movie.heart_tag = "filled"
+                        heartTag = "filled"
                     }
                 }
 
@@ -292,8 +289,10 @@ fun MovieInfo(
                     modifier = Modifier
                         .size(size = 60.dp)
                         .align(Alignment.TopEnd),
-                    imageVector = heartIcon,
-                    tint = heartTint,
+                    imageVector = if (heartTag == "filled")Icons.Filled.Favorite
+                    else Icons.Outlined.FavoriteBorder,
+                    tint = if (heartTag== "filled") MovieTheme.colors.filledHeart
+                    else MovieTheme.colors.iconInteractiveInactive,
                     contentDescription = "Heart Button"
                 )
             }
@@ -376,7 +375,7 @@ fun MovieInfo(
         }
             CastListDisplay (castList = castList, navController)
             Spacer(modifier = Modifier.height(16.dp))
-            MovieListDisplay(movieList = movieList)
+            MovieListDisplay(movieList = movieList, navController)
 
 
 
@@ -429,7 +428,9 @@ fun CastListDisplay(castList: ArrayList<CastPerson>?, navController: NavControll
 
 
 @Composable
-fun MovieListDisplay(movieList: LazyPagingItems<MovieDetail>?) {
+fun MovieListDisplay(movieList: LazyPagingItems<MovieDetail>?, navController: NavController) {
+    val bundle by remember { mutableStateOf(Bundle())}
+    var clicked by remember { mutableStateOf(-1) }
     if (movieList != null && movieList.itemCount != 0) {
         Text(
             text = "Recommendations",
@@ -448,8 +449,16 @@ fun MovieListDisplay(movieList: LazyPagingItems<MovieDetail>?) {
 
             ) {
             items(items = movieList.itemSnapshotList, itemContent = { item ->
+
                 item?.let {
-                    GridMovie(item)
+                    GridMovie(item,  onItemClick = {clicked = item.id})
+                }
+                if(clicked != -1){
+                    bundle.apply {
+                        putInt(BundleKeys.REQUEST_MOVIE_ID, clicked)
+                        navController.navigate(R.id.action_detail, bundle)
+
+                    }
                 }
 
             })

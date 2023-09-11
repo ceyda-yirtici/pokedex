@@ -62,7 +62,7 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val movie =  movieService.getMovie(id,BundleKeys.API_KEY)
-
+                if (movieDao.getAllByIds().contains(movie.id)) movie.heart_tag = "filled"
                 _uiState.update {
                     it.copy(movie = movie,loading = false)
                 }

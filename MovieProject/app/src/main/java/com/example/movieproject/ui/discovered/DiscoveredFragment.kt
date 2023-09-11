@@ -1,47 +1,68 @@
 package com.example.movieproject.ui.discovered
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.movieproject.R
-import com.example.movieproject.databinding.FragmentDiscoveredBinding
-import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.ui.FavoritesManager
-import com.example.movieproject.ui.moviedetail.DetailMovieFragment
-import com.example.movieproject.ui.MovieRecyclerAdapter
 import com.example.movieproject.ui.discover.DiscoveredViewModel
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-@AndroidEntryPoint
-class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
 
-    private lateinit var binding: FragmentDiscoveredBinding
+@AndroidEntryPoint
+class DiscoveredFragment : Fragment() {
+
     private lateinit var favoritesManager: FavoritesManager
     private val viewModel: DiscoveredViewModel by viewModels(ownerProducer = { this })
-    private var pageCount = 1
-    private var movieRecyclerAdapter: MovieRecyclerAdapter = MovieRecyclerAdapter()
     private var genres: String = ""
     private var minVote = 0.0F
 
 
+    @SuppressLint("UnsafeRepeatOnLifecycleDetector")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentDiscoveredBinding.inflate(inflater, container, false)
-        return binding.root
+
+        val composeView = ComposeView(requireContext())
+        favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao(), viewModel.viewModelScope)
+        val navController = findNavController()
+
+
+        genres = requireArguments().getString(BundleKeys.REQUEST_DISCOVER).toString()
+        minVote = requireArguments().getFloat(BundleKeys.MIN_VOTE)
+        viewModel.displayGroup(genres, minVote)
+
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                viewModel.uiState.collect { uiState ->
+                    composeView.setContent {
+                        DiscoveredScreen(
+                            uiState,
+                            navController,
+                            favoritesManager
+                        )
+                    }
+                }
+
+            }
+        }
+        return composeView
     }
+
+    /*
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -164,5 +185,5 @@ class DiscoveredFragment : Fragment(R.layout.fragment_discovered) {
             }
         }
 
-    }
+    }*/
 }

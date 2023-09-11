@@ -54,11 +54,12 @@ import com.example.movieproject.utils.BundleKeys
 
 @Composable
 fun GridMovie(
-              movie:MovieDetail
+              movie:MovieDetail,
+              onItemClick: (Int) -> Unit,
 ) {
 
     Box(
-        modifier = Modifier.width(130.dp)
+        modifier = Modifier.width(130.dp).clickable { onItemClick(movie.id) }
     ) {
         val imageUrl = movie.poster_path
         var photoUrl = ""
@@ -119,6 +120,7 @@ fun ListMovie(
     genres: ArrayList<String>,
     favoritesManager: FavoritesManager?,
     onHeartButtonClick:  (Int) -> Unit,
+    onItemClick: (Int) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -126,6 +128,7 @@ fun ListMovie(
             .fillMaxWidth()
             .height(192.dp)
             .background(MovieTheme.colors.uiBackground)
+            .clickable { onItemClick(movie.id) }
     ) {
         var photoUrl = ""
         if (movie.poster_path != null) photoUrl = BundleKeys.baseImageUrl + movie.poster_path
@@ -308,7 +311,7 @@ private fun GridItemPreview() {
         heart_tag = "String"
     )
     MovieTheme {
-        GridMovie(mockMovie)
+        GridMovie(mockMovie, {})
     }
 }
 
@@ -336,6 +339,6 @@ private fun ListItemPreview() {
         ListMovie(
             mockMovie,
             mockGenreList,
-            null, {})
+            null, {}, {})
     }
 }

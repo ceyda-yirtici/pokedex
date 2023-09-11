@@ -2,7 +2,6 @@ package com.example.movieproject.ui.movies
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -14,6 +13,7 @@ import com.example.movieproject.model.MovieDetail
 import com.example.movieproject.room.AppDatabaseProvider
 import com.example.movieproject.service.MovieService
 import com.example.movieproject.service.PopularMoviesPagingSource
+import com.example.movieproject.service.SearchPagingSource
 import com.example.movieproject.ui.GenreMapper
 import com.example.movieproject.utils.BundleKeys
 import com.example.myapplication.room.MovieDao
@@ -38,12 +38,13 @@ class MoviesViewModel  @Inject constructor(
 
     data class PopularMoviesUiState(
 
-        val movieList: Flow<PagingData<MovieDetail>> = flowOf(),
+        var movieList: Flow<PagingData<MovieDetail>> = flowOf(),
         val genreMapper: HashMap<Int,String> = GenreMapper.genreMapper,
         val favoritesList: MutableList<Int> = mutableListOf(),
         var viewType: Int = 1,
         val loading: Boolean = true,
-
+        var searchText: String = "",
+        var searching: Boolean = false
 
         )
 
@@ -53,22 +54,9 @@ class MoviesViewModel  @Inject constructor(
 
 
 
-
-
-    fun setViewType(listViewType: Int) {
-        _uiState.update {
-            it.copy(viewType = listViewType)
-        }
-    }
-
     init {
         val database = AppDatabaseProvider.getAppDatabase(application)
         movieDao = database.movieDao()
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update {
-                it.copy(favoritesList = movieDao.getAllByIds() as MutableList<Int>)
-            }
-        }
         callMovieRepos()
         callGenreRepos()
     }
@@ -84,18 +72,34 @@ class MoviesViewModel  @Inject constructor(
         }.flow.cachedIn(viewModelScope)
     }
 
+    private fun getAllSearchValues(): Flow<PagingData<MovieDetail>> {
+
+        return Pager(
+            PagingConfig(pageSize = 20)
+        ) {
+            SearchPagingSource(movieService, uiState.value.favoritesList, uiState.value.searchText)
+        }.flow.cachedIn(viewModelScope)
+    }
+
     private fun callMovieRepos() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-
-                val updatedList = getAllMovies()
+                val updatedList:Flow<PagingData<MovieDetail>> = if (!uiState.value.searching)
+                    getAllMovies()
+                else
+                    getAllSearchValues()
 
                 _uiState.update {
                     it.copy(movieList = updatedList)
                 }
             } catch (exception: Exception) {
                 // Handle exception
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update {
+                it.copy(favoritesList = movieDao.getAllByIds() as MutableList<Int>, loading = false)
             }
         }
     }
@@ -119,7 +123,7 @@ class MoviesViewModel  @Inject constructor(
     }
 
     fun displayGroup() {
-            callMovieRepos()
+        callMovieRepos()
     }
 
     fun getMovieDao(): MovieDao {

@@ -1,4 +1,5 @@
 import android.content.res.Configuration
+import android.os.Bundle
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -23,7 +24,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.movieproject.R
 
@@ -80,6 +81,7 @@ fun CastScreenPreview() {
             backdrop = mockBackDrop,
             movieList = ArrayList(arrayListOf()),
             onBackPressedDispatcher = null,
+            navController = null,
         )
     }
 
@@ -92,7 +94,8 @@ fun CastScreenPreview() {
 @Composable
 fun CastScreen(
     castUiState: CastViewModel.CastUiState?,
-    onBackPressedDispatcher: OnBackPressedDispatcher
+    onBackPressedDispatcher: OnBackPressedDispatcher,
+    navController: NavController
 ) {
 
     val cast = castUiState?.cast
@@ -111,8 +114,9 @@ fun CastScreen(
                         .fillMaxSize()
                 ) {
                     item {
-                        CastInfo(cast = cast, backdrop = backdropMovie, movieList = movieList,
-                            onBackPressedDispatcher = onBackPressedDispatcher)
+                        CastInfo(
+                            cast = cast, backdrop = backdropMovie, movieList = movieList,
+                            onBackPressedDispatcher = onBackPressedDispatcher, navController = navController)
                     }
 
                 }
@@ -130,6 +134,7 @@ fun CastInfo(
     backdrop: MovieDetail,
     movieList: ArrayList<MovieDetail>?,
     onBackPressedDispatcher: OnBackPressedDispatcher?,
+    navController: NavController?,
 ) {
     Column {
 
@@ -304,7 +309,7 @@ fun CastInfo(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             )
         }
-        CastMovieDisplay(movieList)
+        CastMovieDisplay(movieList, navController)
 
 
     }
@@ -312,7 +317,9 @@ fun CastInfo(
 }
 
 @Composable
-fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?) {
+fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?,navController: NavController?) {
+    val bundle by remember { mutableStateOf(Bundle())}
+    var clicked by remember { mutableStateOf(-1) }
     if (!movieList.isNullOrEmpty()) {
         Text(
             text = "Movies",
@@ -331,9 +338,19 @@ fun CastMovieDisplay(movieList: ArrayList<MovieDetail>?) {
 
         ) {
             items(items = movieList, itemContent = { item ->
-                    GridMovie(item)
+                item?.let {
+                    GridMovie(item, onItemClick = { clicked = item.id })
+                }
+                if (clicked != -1) {
+                    bundle.apply {
+                        putInt(BundleKeys.REQUEST_MOVIE_ID, clicked)
+                        navController?.navigate(R.id.action_detail, bundle)
+
+                    }
+                }
 
             })
+
         }
     }
 }

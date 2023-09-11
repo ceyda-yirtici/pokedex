@@ -11,8 +11,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
-import com.example.movieproject.R
+import com.example.movieproject.ui.FavoritesManager
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class DetailMovieFragment : Fragment() {
     private val viewModel: DetailsViewModel by viewModels(ownerProducer = { this })
+    private lateinit var favoritesManager: FavoritesManager
 
         @SuppressLint("UnsafeRepeatOnLifecycleDetector")
         override fun onCreateView(
@@ -27,7 +29,7 @@ class DetailMovieFragment : Fragment() {
             savedInstanceState: Bundle?
         ): View {
             val composeView = ComposeView(requireContext())
-
+            favoritesManager = FavoritesManager.getInstance(viewModel.getMovieDao(), viewModel.viewModelScope)
             val id: Int = requireArguments().getInt(BundleKeys.REQUEST_PERSON_ID)
             viewModel.displayCast(id)
             viewModel.displayMovie(id)
@@ -40,7 +42,7 @@ class DetailMovieFragment : Fragment() {
                         composeView.setContent {
                             MovieScreen(movieUiState = uiState,
                                 requireActivity().onBackPressedDispatcher,
-                                navController,)
+                                navController, favoritesManager)
                         }
                     }
                 }

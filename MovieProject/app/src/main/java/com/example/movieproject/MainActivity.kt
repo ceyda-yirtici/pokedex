@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         supportActionBar?.hide() // Hide the default action bar
 
         val navView: BottomNavigationView = binding.navView
@@ -43,9 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_movies, R.id.navigation_favorites, R.id.navigation_discover,
-                R.id.detailMovieFragment,
-                R.id.discoveredFragment
+                R.id.navigation_movies, R.id.navigation_favorites, R.id.navigation_discover
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

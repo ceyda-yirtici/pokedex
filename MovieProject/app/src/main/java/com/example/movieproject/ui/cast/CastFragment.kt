@@ -12,6 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.example.movieproject.utils.BundleKeys
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -35,7 +36,7 @@ class CastFragment: Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { castState ->
                     composeView.setContent {
-                        CastScreen(castUiState = castState, requireActivity().onBackPressedDispatcher)
+                        CastScreen(castUiState = castState, requireActivity().onBackPressedDispatcher, findNavController())
                     }
                 }
             }

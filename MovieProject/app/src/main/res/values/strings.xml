@@ -13,6 +13,7 @@
     <string name="favorites">Favorites</string>
     <string name="discover">Discover</string>
     <string name="popular_movies">Popular Movies</string>
+    <string name="icn_search_clear_content_description">Close Search Bar</string>
 
     <plurals name="cart_order_count">
         <item quantity="one">%1d item</item>
