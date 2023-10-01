@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">My Movie List</string>
+    <string name="textview">TextView</string>
+    <string name="release_date" />
+    <string name="moviephoto">moviePhoto</string>
+    <string name="cast">Cast</string>
+    <string name="about">About</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="biography">Biography</string>
+    <string name="placeholder">placeholder</string>
+    <string name="no_movies_in_favorites_list">No movies in Favorites List</string>
+    <string name="placeholder_text_favorites">Save movies you like, and they will show up here.</string>
+    <string name="favorites">Favorites</string>
+    <string name="discover">Discover</string>
+    <string name="popular_movies">Popular Movies</string>
+    <string name="icn_search_clear_content_description">Close Search Bar</string>
+
+    <plurals name="cart_order_count">
+        <item quantity="one">%1d item</item>
+        <item quantity="other">%1d items</item>
+    </plurals>
+</resources>

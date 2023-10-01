@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_movies">
+
+    <fragment
+        android:id="@+id/navigation_movies"
+        android:name="com.example.movieproject.ui.movies.MoviesFragment"
+        >
+
+        <action
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_favorites"
+        android:name="com.example.movieproject.ui.favorites.FavoritesFragment"
+     >
+
+        <action
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_discover"
+        android:name="com.example.movieproject.ui.discover.DiscoverFragment"
+        >
+        <action
+            android:id="@+id/action_discovered"
+            app:destination="@id/discoveredFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/detailMovieFragment"
+        android:name="com.example.movieproject.ui.moviedetail.DetailMovieFragment"
+        android:label="DetailMovieFragment"
+        >
+
+        <action
+            android:id="@+id/action_cast"
+            android:name="com.example.movieproject.ui.cast.CastFragment"
+            android:label="CastFragment"
+            app:destination="@id/castFragment" />
+
+
+        <action
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
+
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/discoveredFragment"
+        android:name="com.example.movieproject.ui.discovered.DiscoveredFragment"
+        android:label="DiscoveredFragment" >
+
+        <action
+            android:id="@+id/action_discoveredFragment_to_navigation_discover"
+            app:destination="@id/navigation_discover" />
+
+        <action
+            android:id="@+id/action_detail"
+            app:destination="@id/detailMovieFragment" />
+
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/castFragment"
+        android:name="com.example.movieproject.ui.cast.CastFragment"
+        android:label="CastFragment">
+
+    <action
+        android:id="@+id/action_detail"
+        app:destination="@id/detailMovieFragment" />
+    </fragment>
+
+</navigation>
