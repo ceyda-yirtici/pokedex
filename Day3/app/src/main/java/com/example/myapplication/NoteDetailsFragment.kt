@@ -1,17 +1,18 @@
 package com.example.myapplication
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.FragmentNoteDetailsBinding
 
 
-private lateinit var binding: FragmentNoteDetailsBinding
 
 
 class NoteDetailsFragment : Fragment(R.layout.fragment_note_details) {
+
+    private lateinit var binding: FragmentNoteDetailsBinding
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

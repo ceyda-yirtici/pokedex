@@ -33,7 +33,7 @@ class ListFragment :Fragment(R.layout.fragment_list){
     ): View? {
         binding = FragmentListBinding.inflate(layoutInflater, container, false)
         binding.recycler.layoutManager = LinearLayoutManager(requireContext())
-        db = AppDatabaseProvider.getAppDatabase(requireContext())
+        db = AppDatabaseProvider.getAppDatabase(requireContext()) // lazy, di, hilt
         return binding.root
     }
 
@@ -162,7 +162,6 @@ class ListFragment :Fragment(R.layout.fragment_list){
                 adapter.setOnClickListener(object : NoteAdapter.OnNoteClickListener {
 
                     override fun onNoteClick(position: Int) {
-                        // Handle item click here
                         val clickedNote = notesList[position]
                         val detail = clickedNote.content
                         val tag = clickedNote.tag
@@ -175,7 +174,7 @@ class ListFragment :Fragment(R.layout.fragment_list){
                         }
 
                         val destinationFragment = NoteDetailsFragment()
-                        destinationFragment.arguments = bundle
+                       destinationFragment.arguments = bundle
                         findNavController().navigate(R.id.action_listFragment_to_detailFragment, bundle) // R.id.action_detail
 
 

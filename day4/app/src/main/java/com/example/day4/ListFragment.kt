@@ -13,8 +13,8 @@ class ListFragment : Fragment(R.layout.fragment_list){
         super.onViewCreated(view, savedInstanceState)
         view.findViewById<Button>(R.id.button).setOnClickListener {
 
-            //val bundle = bundleOf(BUNDLE_KEY to "merhaba")
-            findNavController().navigate(R.id.action_listFragment_to_detailFragment) // R.id.action_detail
+            val bundle = bundleOf(BUNDLE_KEY to "merhaba")
+            findNavController().navigate(R.id.action_listFragment_to_detailFragment, bundle) // R.id.action_detail
         }
 
     }

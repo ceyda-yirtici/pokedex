@@ -10,7 +10,9 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="textview"
+        android:layout_marginStart="188dp"
+        android:layout_marginTop="268dp"
+        android:text="@string/textview2"
         android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -42,13 +42,14 @@ android {
         implementation 'androidx.navigation:navigation-fragment-ktx:2.6.0'
         implementation 'androidx.navigation:navigation-ui-ktx:2.6.0'
         def fragment_version = "1.6.0"
-        def room_version = "2.5.2"
+
         implementation 'androidx.core:core-ktx:1.8.0'
         implementation 'androidx.appcompat:appcompat:1.6.1'
         implementation 'com.google.android.material:material:1.5.0'
         implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
         implementation "androidx.fragment:fragment-ktx:$fragment_version"
 
+        def room_version = "2.5.2"
         implementation "androidx.room:room-runtime:$room_version"
         ksp "androidx.room:room-compiler:$room_version"
 

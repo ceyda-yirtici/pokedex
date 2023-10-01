@@ -16,7 +16,6 @@ class MainActivity : AppCompatActivity() {
         val navController: NavController = navHostFragment.navController
         navController.navigate(R.id.listFragment)
 
-
     }
 
 

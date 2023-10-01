@@ -47,9 +47,7 @@ class ListViewModel @Inject constructor(
     }
 
 
-    init {
-        callPokemonRepos(1)
-    }
+
 
     private fun callPokemonRepos(pokeCount: Int) {
         liveDataLoading.postValue(true)
